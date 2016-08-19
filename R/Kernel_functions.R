@@ -1,0 +1,234 @@
+################################################################################
+#
+#   iprior: Linear Regression using I-priors
+#   Copyright (C) 2016  Haziq Jamil
+#
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+################################################################################
+
+#' Reproducing kernels for the I-prior package
+#'
+#' The three kernel functions used in this package are the Canonical kernel
+#' \code{fnH2}, Fractional Brownian Motion (FBM) kernel \code{fnH3} (with a
+#' default Hurst coefficient of 0.5), and the Pearson kernel \code{fnH1}.
+#'
+#' The Pearson kernel is used for nominal-type variables, and in R,
+#' \code{\link{factor}}-type objects are treated with the Pearson kernel
+#' automatically. The other two kernel types are for continuous variables, with
+#' the Canonical kernel used for "straight-line" effects and the FBM for
+#' smoothing effects. The smoothness is controlled somewhat by the Hurst
+#' coefficient.
+#'
+#' @param x,y A vector, matrix or data frame. \code{x} and \code{y} must have
+#'   similar dimensions.
+#' @param gamma The Hurst coefficient when using the FBM kernel.
+#'
+#' @return A matrix with class of either \code{"Canonical"}, \code{"FBM,gamma"},
+#'   or \code{"Pearson"} whose \code{[i, j]} entries are \eqn{h(}\code{y[i]},
+#'   \code{x[j]}\eqn{)}, with \eqn{h} being the kernel function. The matrix has
+#'   dimensions \code{m} by \code{n} according to the lengths of \code{y} and
+#'   \code{x} which has lengtsh \code{m} and \code{n} respectively. When a
+#'   single vector argument \code{x} is supplied, then \code{y} is taken to be
+#'   equal to \code{x}, and a symmetric \code{n} by \code{n} matrix is returned.
+#'
+#'   If \code{x} is a matrix or data frame with \code{p} columns, then the
+#'   kernel matrix returned is \code{fnH(x[, 1]) + ... + fnH(x[, p])}.
+#'
+#' @seealso The
+#'   \href{https://en.wikipedia.org/wiki/Fractional_Brownian_motion}{Wikipedia}
+#'   page on the Fractional Brownian Motion.
+#'
+#' @name kernel
+#' @aliases Canonical FBM Pearson
+NULL
+
+fn.H1 <- function(x, y = NULL) {
+  # Pearson kernel.
+  # Args: x,y vector of type "factor"
+	ytmp <- y
+	if (is.null(ytmp)) y <- x
+	if (any(is.numeric(x), is.numeric(y))) {
+	  warning("Non-factor type vector used with Pearson kernel.", call. = FALSE)
+	}
+	# Combine x and y, unfactorise them and work with numbers --------------------
+	x <- factor(x); y <- factor(y)
+	z <- unlist(list(x,y))  # simply doing c(x,y) messes with the factors
+	z <- as.numeric(z)
+	x <- z[1:length(x)]; y <- z[(length(x) + 1):length(z)]
+	if (any(is.na(match(y,x)))) {
+	  stop("The vector y contains elements not belonging to x.")
+	}
+	prop <- table(x)/length(x)
+
+	unqy <- sort(unique(y))
+	unqx <- sort(unique(x))
+	tmpx <- lapply(unqx, function(k) which(x == k))
+	tmpy <- lapply(unqy, function(k) which(y == k))
+	tmp <- lapply(1:length(unqy),
+	              function(k) expand.grid(tmpy[[k]], tmpx[[unqy[k]]]))
+	# Side note: can avoid for loop below by combining the list tmp using
+	# do.call(rbind, tmp) or the faster data.table option
+	# as.matrix(data.table::rbindlist(tmp)) but tests found that this is actually
+	# slower.
+
+	mat <- matrix(-1, nrow = length(y), ncol = length(x))
+	for (i in 1:length(unqy)) {
+		mat[as.matrix(tmp[[i]])] <- 1/prop[unqy[i]] - 1
+	}
+	class(mat) <- "Pearson"
+	mat
+}
+
+fn.H2 <- function(x, y = NULL) {
+  # Canonical kernel function.
+  if (is.null(y)) y <- x
+  tmp <- tcrossprod(y, x)
+  class(tmp) <- "Canonical"
+  tmp
+}
+
+fn.H2a <- function(x, y = NULL) {
+  # Centred Canonical kernel function. This is the kernel used, as opposed to
+  # the uncentred one.
+  x <- as.numeric(x)
+  if (is.null(y)) y <- x
+  else y <- as.numeric(y)
+  xbar <- mean(x)
+  tmp <- tcrossprod(y - xbar, x - xbar)
+  class(tmp) <- "Canonical"
+  tmp
+}
+
+fn.H3 <- function(x, y = NULL, gamma = NULL) {
+	# The Fractional Brownian Motion kernel with Hurst coef. = gamma.
+  if (is.null(gamma)) gamma <- 0.5
+	x <- as.numeric(x)
+	n <- length(x)
+
+	if (is.null(y)) {
+		tmp <- matrix(0, n, n)
+		index.mat <- upper.tri(tmp, diag = TRUE)
+		index <- which(index.mat, arr.ind = TRUE)
+		tmp2 <- abs(x[index[, 1]]) ^ (2 * gamma) +
+		  abs(x[index[, 2]]) ^ (2 * gamma) -
+		  abs(x[index[, 1]] - x[index[, 2]]) ^ (2 * gamma)
+		tmp[index.mat] <- tmp2
+		tmp2 <- tmp; diag(tmp2) <- 0
+		tmp <- tmp + t(tmp2)
+	}
+	else{
+		y <- as.numeric(y); m <- length(y)
+		tmp <- matrix(NA, ncol = n, nrow = m)
+		for (i in 1:m) {
+			for (j in 1:n) {
+				tmp[i, j] <- abs(y[i]) ^ (2 * gamma) + abs(x[j]) ^ (2 * gamma) -
+				  abs(y[i] - x[j]) ^ (2 * gamma)
+			}
+		}
+	}
+	class(tmp) <- paste("FBM", gamma, sep = ",")
+	tmp
+}
+
+fn.H3a <- function(x, y = NULL, gamma = NULL){ #takes in vector of covariates
+	# The centred and scaled version of the FBM kernel. This is the one used
+	# instead of fn.H3a above
+  if (is.null(gamma)) gamma <- 0.5
+	x <- as.numeric(x)
+	n <- length(x)
+
+	if (is.null(y)) {
+		A <- matrix(0, n, n)
+		index.mat <- upper.tri(A)
+		index <- which(index.mat, arr.ind = TRUE)
+		tmp2 <- abs(x[index[, 1]] - x[index[, 2]]) ^ (2 * gamma)
+		A[index.mat] <- tmp2
+		A <- A + t(A)
+		rvec <- apply(A, 1, sum)
+		s <- sum(rvec)
+		rvec1 <- tcrossprod(rvec, rep(1, n))
+		tmp <- (A - rvec1 / n - t(rvec1) / n + s / (n ^ 2)) / (-2)
+	}
+	else{
+		y <- as.numeric(y)
+		m <- length(y)
+
+		A <- matrix(0, n, n)
+		index.mat <- upper.tri(A)
+		index <- which(index.mat, arr.ind = TRUE)
+		tmp2 <- abs(x[index[, 1]] - x[index[,2]]) ^ (2 * gamma)
+		A[index.mat] <- tmp2
+		A <- A + t(A)
+		rvec <- apply(A, 1, sum)
+		s <- sum(rvec)
+		rvec1 <- tcrossprod(rep(1, m), rvec)
+
+		B <- matrix(0, m, n)
+		indexy <- expand.grid(1:m, 1:n)
+		B[, ] <- abs(y[indexy[, 1]] - x[indexy[, 2]]) ^ (2 * gamma)
+		qvec <- apply(B, 1, sum)
+		qvec1 <- tcrossprod(qvec, rep(1, n))
+
+		tmp <- (B - qvec1 / n - rvec1 / n + s / (n ^ 2)) / (-2)
+	}
+	class(tmp) <- paste("FBM", gamma, sep = ",")
+	tmp
+}
+
+# The following three functions are able to take matrices instead of vector
+# inputs. This is required for the one.lam = TRUE option. These functions are
+# exported
+
+#' @rdname kernel
+#' @export
+fnH1 <- function(x, y = NULL){
+	res <- 0
+	if ((ncol(x) > 1) && !is.null(ncol(x))) {
+		if ((ncol(x) != ncol(y)) && !is.null(y)) {
+		  stop("New data is structurally unsimilar.")
+		}
+		for (i in 1:ncol(x)) res <- res + fn.H1(x = x[, i], y = y[, i])
+	}
+	else res <- fn.H1(x, y)
+	return(res)
+}
+
+#' @rdname kernel
+#' @export
+fnH2 <- function(x, y = NULL){
+	res <- 0
+	if ((ncol(x) > 1) && !is.null(ncol(x))) {
+		if ((ncol(x) != ncol(y)) && !is.null(y)) {
+		  stop("New data is structurally unsimilar.")
+		}
+		for (i in 1:ncol(x)) res <- res + fn.H2a(x = x[, i], y = y[, i])
+	}
+	else res <- fn.H2a(x, y)
+	return(res)
+}
+
+#' @rdname kernel
+#' @export
+fnH3 <- function(x, y = NULL, gamma = 0.5){
+	res <- 0
+	if ((ncol(x) > 1) && !is.null(ncol(x))) {
+		if ((ncol(x) != ncol(y)) && !is.null(y)) {
+		  stop("New data is structurally unsimilar.")
+		}
+		for (i in 1:ncol(x)) res <- res + fn.H3a(x = x[, i], y = y[, i], gamma)
+	}
+	else res <- fn.H3a(x, y, gamma)
+	return(res)
+}
