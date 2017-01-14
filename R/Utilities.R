@@ -32,6 +32,8 @@ is.ipriorMod <- function(x) inherits(x, "ipriorMod")
 
 is.ipriorKernel <- function(x) inherits(x, "ipriorKernel")
 
+is.ipriorX <- function(x) inherits(x, "ipriorX")
+
 testXForm <- function(x) {
   # Tests whether object x is a data frame fitted using formula interface.
   xform <- FALSE
@@ -67,7 +69,7 @@ isCan <- function(x) x == "Canonical"
 
 isPea <- function(x) x == "Pearson"
 
-isFBM <- function(x) x == "FBM"
+isFBM <- function(x) grepl("FBM", x)
 
 canPeaFBM <- function(x, kernel, gamma, y) {
   if (isCan(kernel)) res <- fnH2(x, y)
@@ -96,13 +98,38 @@ addZeroesIntr3Plus <- function(x) {
   })
 }
 
+splitKernel <- function(kernel) {
+  # Helper function to split the FBMs from the Hurst coefficients, if any
+  paste(lapply(strsplit(kernel, ","), function(x) x[1]))
+}
+
+splitHurst <- function(kernel) {
+  # Helper function to split the FBMs from the Hurst coefficients, if any
+  suppressWarnings(
+    tmp <- as.numeric(paste(lapply(strsplit(kernel, ","), function(x) x[2])))
+  )
+  # tmp[is.na(tmp)] <- 0.5
+  tmp
+}
+
 hMatList <- function(x, kernel, intr, no.int, gamma, intr.3plus,
                      xstar = vector("list", p)) {
   # Helper function for creation of list of H matrices. Used in Kernel_loader.r
   # and predict.R
   p <- length(x)
-  H <- mapply(canPeaFBM, x = x, kernel = as.list(kernel),
-              gamma = gamma, y = xstar, SIMPLIFY = FALSE)
+
+  # Check how many Hurst coefficients are provided -----------------------------
+  # if (length(gamma) < sum(isFBM(kernel))) {
+  #   warning("Number of Hurst coefficients supplied is less than the number of FBM kernels used.", call. = FALSE)
+  # }
+  # if (length(gamma) > p) {
+  #   stop("Number of Hurst coefficients supplied is more than the number of FBM kernels used.", call. = FALSE)
+  # }
+
+  suppressWarnings(
+    H <- mapply(canPeaFBM, x = x, kernel = as.list(kernel),
+                gamma = gamma, y = xstar, SIMPLIFY = FALSE)
+  )
   if (!is.null(intr)) {
 	  # Add in interactions, if any.
 		for (j in 1:no.int) {
@@ -133,31 +160,29 @@ indxFn <- function(k) {
 	k.noint <- which(!(ind.int1 | ind.int2)) + p	# the opposite of k.int
 
 	# P.mat %*% R.mat + R.mat %*% P.mat indices ----------------------------------
-	za <- which((ind1 %in% k & ind2 %in% nok) | (ind2 %in% k & ind1 %in% nok))
-	grid.PR <- expand.grid(k.int, nok)
-	zb <- which(	(ind1 %in% grid.PR[,1] & ind2 %in% grid.PR[,2]) |
-					(ind2 %in% grid.PR[,1] & ind1 %in% grid.PR[,2])
-	)
+	grid.PR1 <- expand.grid(k, nok)
+	za <- apply(grid.PR1, 1, findH2, ind1 = ind1, ind2 = ind2)
+	grid.PR2 <- expand.grid(k.int, nok)
+	zb <- apply(grid.PR2, 1, findH2, ind1 = ind1, ind2 = ind2)
 	grid.PR.lam <- expand.grid(k.int.lam, nok)
 
 	# P.mat %*% U.mat + U.mat %*% P.mat indices ----------------------------------
 	grid.PU1 <- expand.grid(k, k.noint)
-	zc <- which((ind1 %in% grid.PU1[,1] & ind2 %in% grid.PU1[,2]) |
-					    (ind2 %in% grid.PU1[,1] & ind1 %in% grid.PU1[,2]))
+	zc <- apply(grid.PU1, 1, findH2, ind1 = ind1, ind2 = ind2)
 	grid.PU2 <- expand.grid(k.int, k.noint)
 	zd <- apply(grid.PU2, 1, findH2, ind1 = ind1, ind2 = ind2)
 	grid.PU.lam <- expand.grid(k.int.lam, k.noint)
 
 	# P.mat %*% P.mat indices ----------------------------------------------------
 	grid.Psq <- t(combn(c(k, k.int), 2))
-	ze <- apply(grid.Psq, 1, findH2, ind1 = ind1, ind2 = ind2 )
+	ze <- apply(grid.Psq, 1, findH2, ind1 = ind1, ind2 = ind2)
 	grid.Psq.lam <- NULL
 	if (length(k.int.lam) > 0) grid.Psq.lam <- t(combn(c(0, k.int.lam), 2))
 
 	list(
 	    k.int     = k.int,
 	    k.int.lam = k.int.lam,
-			PRU       = c(za,zc,zb,zd),
+			PRU       = c(za, zc, zb, zd),
 			PRU.lam1  = c(rep(0, length(nok) + length(k.noint)),
 			            grid.PR.lam[,1],
 			            grid.PU.lam[,1]),
@@ -172,7 +197,7 @@ indxFn <- function(k) {
 
 findH2 <- function(z, ind1, ind2){
   # This function finds position of H2 (cross-product terms of H). Used in
-  # indxFn()
+  # indxFn(). z is a dataframe created from expand.grid().
   x <- z[1]; y <- z[2]
   which((ind1 == x & ind2 == y) | (ind2 == x & ind1 == y))
 }
@@ -238,4 +263,4 @@ globalVariables(c("BlockB", "BlockBstuff", "Hl", "Hlam.mat", "Pl", "Psql", "Sl",
                   "intr.3plus", "ipriorEM.env", "l", "lambda", "maxit", "model",
                   "n", "nlm", "no.int", "no.int.3plus", "one.lam", "p", "parsm",
                   "psi", "r", "report", "s", "stop.crit", "theta", "u", "w.hat",
-                  "x", "x0"))
+                  "x", "x0", "intercept"))

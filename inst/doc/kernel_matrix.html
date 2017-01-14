@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<meta name="author" content="Haziq Jamil" />
+
+<meta name="date" content="2017-01-10" />
+
+<title>Manual for the kernel matrix list</title>
+
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+</style>
+
+
+
+<link href="data:text/css;charset=utf-8,body%20%7B%0Abackground%2Dcolor%3A%20%23fff%3B%0Amargin%3A%201em%20auto%3B%0Amax%2Dwidth%3A%20700px%3B%0Aoverflow%3A%20visible%3B%0Apadding%2Dleft%3A%202em%3B%0Apadding%2Dright%3A%202em%3B%0Afont%2Dfamily%3A%20%22Open%20Sans%22%2C%20%22Helvetica%20Neue%22%2C%20Helvetica%2C%20Arial%2C%20sans%2Dserif%3B%0Afont%2Dsize%3A%2014px%3B%0Aline%2Dheight%3A%201%2E35%3B%0A%7D%0A%23header%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0A%23TOC%20%7B%0Aclear%3A%20both%3B%0Amargin%3A%200%200%2010px%2010px%3B%0Apadding%3A%204px%3B%0Awidth%3A%20400px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Aborder%2Dradius%3A%205px%3B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Afont%2Dsize%3A%2013px%3B%0Aline%2Dheight%3A%201%2E3%3B%0A%7D%0A%23TOC%20%2Etoctitle%20%7B%0Afont%2Dweight%3A%20bold%3B%0Afont%2Dsize%3A%2015px%3B%0Amargin%2Dleft%3A%205px%3B%0A%7D%0A%23TOC%20ul%20%7B%0Apadding%2Dleft%3A%2040px%3B%0Amargin%2Dleft%3A%20%2D1%2E5em%3B%0Amargin%2Dtop%3A%205px%3B%0Amargin%2Dbottom%3A%205px%3B%0A%7D%0A%23TOC%20ul%20ul%20%7B%0Amargin%2Dleft%3A%20%2D2em%3B%0A%7D%0A%23TOC%20li%20%7B%0Aline%2Dheight%3A%2016px%3B%0A%7D%0Atable%20%7B%0Amargin%3A%201em%20auto%3B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dcolor%3A%20%23DDDDDD%3B%0Aborder%2Dstyle%3A%20outset%3B%0Aborder%2Dcollapse%3A%20collapse%3B%0A%7D%0Atable%20th%20%7B%0Aborder%2Dwidth%3A%202px%3B%0Apadding%3A%205px%3B%0Aborder%2Dstyle%3A%20inset%3B%0A%7D%0Atable%20td%20%7B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dstyle%3A%20inset%3B%0Aline%2Dheight%3A%2018px%3B%0Apadding%3A%205px%205px%3B%0A%7D%0Atable%2C%20table%20th%2C%20table%20td%20%7B%0Aborder%2Dleft%2Dstyle%3A%20none%3B%0Aborder%2Dright%2Dstyle%3A%20none%3B%0A%7D%0Atable%20thead%2C%20table%20tr%2Eeven%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Ap%20%7B%0Amargin%3A%200%2E5em%200%3B%0A%7D%0Ablockquote%20%7B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Apadding%3A%200%2E25em%200%2E75em%3B%0A%7D%0Ahr%20%7B%0Aborder%2Dstyle%3A%20solid%3B%0Aborder%3A%20none%3B%0Aborder%2Dtop%3A%201px%20solid%20%23777%3B%0Amargin%3A%2028px%200%3B%0A%7D%0Adl%20%7B%0Amargin%2Dleft%3A%200%3B%0A%7D%0Adl%20dd%20%7B%0Amargin%2Dbottom%3A%2013px%3B%0Amargin%2Dleft%3A%2013px%3B%0A%7D%0Adl%20dt%20%7B%0Afont%2Dweight%3A%20bold%3B%0A%7D%0Aul%20%7B%0Amargin%2Dtop%3A%200%3B%0A%7D%0Aul%20li%20%7B%0Alist%2Dstyle%3A%20circle%20outside%3B%0A%7D%0Aul%20ul%20%7B%0Amargin%2Dbottom%3A%200%3B%0A%7D%0Apre%2C%20code%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0Aborder%2Dradius%3A%203px%3B%0Acolor%3A%20%23333%3B%0Awhite%2Dspace%3A%20pre%2Dwrap%3B%20%0A%7D%0Apre%20%7B%0Aborder%2Dradius%3A%203px%3B%0Amargin%3A%205px%200px%2010px%200px%3B%0Apadding%3A%2010px%3B%0A%7D%0Apre%3Anot%28%5Bclass%5D%29%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Acode%20%7B%0Afont%2Dfamily%3A%20Consolas%2C%20Monaco%2C%20%27Courier%20New%27%2C%20monospace%3B%0Afont%2Dsize%3A%2085%25%3B%0A%7D%0Ap%20%3E%20code%2C%20li%20%3E%20code%20%7B%0Apadding%3A%202px%200px%3B%0A%7D%0Adiv%2Efigure%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0Aimg%20%7B%0Abackground%2Dcolor%3A%20%23FFFFFF%3B%0Apadding%3A%202px%3B%0Aborder%3A%201px%20solid%20%23DDDDDD%3B%0Aborder%2Dradius%3A%203px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Amargin%3A%200%205px%3B%0A%7D%0Ah1%20%7B%0Amargin%2Dtop%3A%200%3B%0Afont%2Dsize%3A%2035px%3B%0Aline%2Dheight%3A%2040px%3B%0A%7D%0Ah2%20%7B%0Aborder%2Dbottom%3A%204px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Apadding%2Dbottom%3A%202px%3B%0Afont%2Dsize%3A%20145%25%3B%0A%7D%0Ah3%20%7B%0Aborder%2Dbottom%3A%202px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Afont%2Dsize%3A%20120%25%3B%0A%7D%0Ah4%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23f7f7f7%3B%0Amargin%2Dleft%3A%208px%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Ah5%2C%20h6%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23ccc%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Aa%20%7B%0Acolor%3A%20%230033dd%3B%0Atext%2Ddecoration%3A%20none%3B%0A%7D%0Aa%3Ahover%20%7B%0Acolor%3A%20%236666ff%3B%20%7D%0Aa%3Avisited%20%7B%0Acolor%3A%20%23800080%3B%20%7D%0Aa%3Avisited%3Ahover%20%7B%0Acolor%3A%20%23BB00BB%3B%20%7D%0Aa%5Bhref%5E%3D%22http%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0Aa%5Bhref%5E%3D%22https%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0A%0Acode%20%3E%20span%2Ekw%20%7B%20color%3A%20%23555%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Edt%20%7B%20color%3A%20%23902000%3B%20%7D%20%0Acode%20%3E%20span%2Edv%20%7B%20color%3A%20%2340a070%3B%20%7D%20%0Acode%20%3E%20span%2Ebn%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Efl%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Ech%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Est%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Eco%20%7B%20color%3A%20%23888888%3B%20font%2Dstyle%3A%20italic%3B%20%7D%20%0Acode%20%3E%20span%2Eot%20%7B%20color%3A%20%23007020%3B%20%7D%20%0Acode%20%3E%20span%2Eal%20%7B%20color%3A%20%23ff0000%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Efu%20%7B%20color%3A%20%23900%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%20code%20%3E%20span%2Eer%20%7B%20color%3A%20%23a61717%3B%20background%2Dcolor%3A%20%23e3d2d2%3B%20%7D%20%0A" rel="stylesheet" type="text/css" />
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Manual for the kernel matrix list</h1>
+<h4 class="author"><em>Haziq Jamil</em></h4>
+<h4 class="date"><em>2017-01-10</em></h4>
+
+
+
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<!-- Adapted from Jamil \& Bergsma (2017).  -->
+<p>The M-step involving the scale parameters <span class="math inline">\(\boldsymbol\lambda\)</span> in the EM algorithm for I-prior models can be found in closed-form in the following situations:</p>
+<ol style="list-style-type: decimal">
+<li>A single scale parameter <code>lambda</code> being used.</li>
+<li>Non-parsimonious methods for higher-order terms and interactions.</li>
+<li>Parsimonious methods, but no covariates involving square, cubic or any other higher order terms, and the highest interaction order is two.</li>
+</ol>
+<p>For any other models such as ones involving squared terms and three-way interactions, the M-step can still be solved using numerical methods such as a downhill simplex method (in R, we use <code>optim(method = &quot;Nelder-Mead&quot;)</code>. Examples:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Model</th>
+<th><code>parsm</code></th>
+<th><code>length(lambda)</code></th>
+<th>Closed form?</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>y ~ x1 + x2 + x3</code></td>
+<td><code>TRUE</code></td>
+<td>3</td>
+<td>Yes</td>
+</tr>
+<tr class="even">
+<td><code>y ~ (x1 + x2 + x3)</code></td>
+<td><code>TRUE</code></td>
+<td>1</td>
+<td>Yes</td>
+</tr>
+<tr class="odd">
+<td><code>y ~ x1 + x2 + x1:x2</code></td>
+<td><code>TRUE</code></td>
+<td>2</td>
+<td>Yes</td>
+</tr>
+<tr class="even">
+<td><code>y ~ x1 + x2 + x1:x2</code></td>
+<td><code>FALSE</code></td>
+<td>3</td>
+<td>Yes</td>
+</tr>
+<tr class="odd">
+<td><code>y ~ (x1 * x2 * x3)</code></td>
+<td><code>TRUE</code></td>
+<td>1</td>
+<td>Yes</td>
+</tr>
+<tr class="even">
+<td><code>y ~ x1 * x2 * x3</code></td>
+<td><code>FALSE</code></td>
+<td>7</td>
+<td>Yes</td>
+</tr>
+<tr class="odd">
+<td><code>y ~ x1 + I(x1 ^ 2)</code></td>
+<td><code>FALSE</code></td>
+<td>2</td>
+<td>Yes</td>
+</tr>
+<tr class="even">
+<td><code>y ~ x1 * x2 * x3</code></td>
+<td><code>TRUE</code></td>
+<td>3</td>
+<td>No</td>
+</tr>
+<tr class="odd">
+<td><code>y ~ x1 + I(x1 ^ 2)</code></td>
+<td><code>TRUE</code></td>
+<td>1</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<p>In short, the most complex model for which closed-form for <code>lambda</code> exists is the parsimonious two-way interaction model. We describe this below.</p>
+<p>Assume there are <span class="math inline">\(p\)</span> covariates, and each of the <span class="math inline">\(p\)</span> kernel matrices <span class="math inline">\(\mathbf H_1, \dots, \mathbf H_p\)</span> are calculated using the appropriate kernels, depending on whether the data is continuous or nominal and what effect is desired. Let the number of unique scale parameters be <span class="math inline">\(l \leq p\)</span>. <span class="math inline">\(l\)</span> could be less than <span class="math inline">\(p\)</span>, which implies that some of the covariates share a scale parameter. For a group of such covariates, the kernel matrix is simply the sum of each kernel matrix, and thus the kernel matrices can be indexed from <span class="math inline">\(1, \dots, l\)</span> as well. Otherwise <span class="math inline">\(l = p\)</span>.</p>
+<p>If two-way interactions are present between any <span class="math inline">\(k,j \in \{1,\dots,l\}\)</span>, then these are also calculated as <span class="math inline">\(\mathbf H_{kj} = \mathbf H_k \circ \mathbf H_j\)</span> (the Hadamard product). In general, the scaled kernel matrix looks like <span class="math display">\[
+    \mathbf H_{\lambda} = \sum_{k=1}^l \lambda_k \mathbf H_k + \sum_{k,j\in M} \lambda_k\lambda_j \mathbf H_{kj}
+\]</span> where the set <span class="math inline">\(M\)</span> is the index of all two way interaction terms between the <span class="math inline">\(p\)</span> covariates, i.e. <span class="math inline">\(M\)</span> <span class="math inline">\(=\)</span> <span class="math inline">\(\{(k,j):\)</span> <span class="math inline">\(k \text{ interacts with } j,\)</span> <span class="math inline">\(\text{ and }\)</span> <span class="math inline">\(k &lt; j,\)</span> <span class="math inline">\(\\\)</span> <span class="math inline">\(\forall k,j=1,\dots,l \}\)</span>. Let the number of two-way interactions be <span class="math inline">\(m=|M|\)</span>. The total number of scale parameters is equal to <span class="math inline">\(q=l+m\)</span> when there are non-parsimonious interactions present, otherwise it is <span class="math inline">\(q=l\)</span>. The non-parsimonious method of interactions assigns a new scale parameter for each of the Hadamard products of interacting kernel matrices. In comparison, the parsimonious method simply multiplies the corresponding scale parameters together.</p>
+<p>For a particular <span class="math inline">\(\lambda_k\)</span>, <span class="math inline">\(k \in \{1,\dots,q\}\)</span>, we partition the sum of the kernel matrix into parts which involve <span class="math inline">\(\lambda_k\)</span> and parts which do not: <span class="math display">\[
+\begin{aligned}
+    \mathbf H_\lambda &amp;=
+    \overbrace{\lambda_k \left( \mathbf H_k +  \sum_{j\in M}\lambda_j\mathbf H_{kj} \right) \vphantom{\mathop{\sum_{j=1}^p}_{j\neq k}}}^{\lambda_k\text{ is here}}
+    +
+    \overbrace{{\mathop{\sum_{j=1}^l}_{j\neq k}\lambda_j \mathbf H_j} + {\mathop{\sum_{k',j \in M}}_{k'\neq k}\lambda_{k'}\lambda_j \mathbf H_{k'j}}}^{\text{no $\lambda_k$ here}} \\
+    &amp;= \lambda_k\mathbf {P_k} + {\mathbf R_k} + {\mathbf U_k}.
+\end{aligned}
+\]</span></p>
+<p><span class="math inline">\(\mathbf P_k\)</span> is the kernel matrix <span class="math inline">\(\mathbf H_k\)</span> plus the sum-product of the interaction kernel matrices with the scale parameters relating to covariate <span class="math inline">\(k\)</span>, i.e. <span class="math inline">\(\sum_j \lambda_j\mathbf H_{kj}\)</span>. <span class="math inline">\(\mathbf R_k\)</span> is the sum-product of the kernel matrices and scale parameters excluding <span class="math inline">\(\lambda_k\mathbf H_k\)</span>. <span class="math inline">\(\mathbf U_k\)</span> is the sum of the interaction cross-product terms excluding those relating to covariate <span class="math inline">\(k\)</span>. Thus, the squared kernel matrix is <span class="math display">\[
+\begin{align}
+        \mathbf H_{\lambda}^2 =&amp; \ \lambda_k^2\mathbf P_k^2  + \lambda_k(\mathbf P_k\mathbf R_k + (\mathbf P_k\mathbf R_k)^\top + \mathbf P_k\mathbf U_k + (\mathbf P_k\mathbf U_k)^\top) \nonumber \\
+        &amp; + \mathbf R_k^2 + \mathbf U_k^2 + \mathbf R_k\mathbf U_k + \mathbf U_k\mathbf R_k.
+\end{align}
+\]</span></p>
+<p>The closed-form solution for the scale parameters in the M-step at iteration <span class="math inline">\(t\)</span> is <span class="math display">\[
+    \lambda_k^{(t+1)} = \frac{(\mathbf y - \hat{\boldsymbol\alpha})^\top \mathbf P_k \tilde{\mathbf w}^{(t)} - \frac{1}{2} \text{tr} \left[ \mathbf S_k \tilde{\mathbf W}^{(t)} \right]}{\text{tr} \left[ \mathbf P_k^2 \tilde{\mathbf W}^{(t)} \right]}
+\]</span> where we have defined <span class="math inline">\(\mathbf S_k = \mathbf P_k\mathbf R_k + \mathbf R_k\mathbf P_k + \mathbf P_k\mathbf U_k + \mathbf U_k\mathbf P_k\)</span>, for each <span class="math inline">\(k = 1,\dots,l\)</span>.</p>
+<p>For most cases, <span class="math inline">\(\mathbf P_k\)</span> and <span class="math inline">\(\mathbf S_k\)</span> only depend on the kernel matrices and not on the scale parameters, so can be calculated once and stored for efficiency. Further, <span class="math inline">\(\mathbf U_k\)</span> equals zero for most cases except in the parsimonious multiple scale parameter case thus simplifying calculations. In fact, we can avoid the expensive matrix multiplications involved in evaluating <span class="math inline">\(\mathbf P_k\)</span>, its square, and <span class="math inline">\(\mathbf S_k\)</span>, by storing all possible square and two-way multiplications of the kernel matrices <span class="math inline">\(\mathbf H_1, \dots, \mathbf H_l\)</span> as the relevant calculation of the M-step simply involves a sum-product of these kernel matrices.</p>
+</div>
+<div id="the-code" class="section level2">
+<h2>The code</h2>
+<p><code>intr</code> is always a <code>2 x m</code> matrix indexing all the <code>m</code> two-way interactions in the model.</p>
+<p><code>h</code> is the length of the kernel matrix. If there are <code>p</code> variables, and <code>m</code> two-way interactions, then <code>h</code> contains the <code>p</code> kernel matrices, and <code>m</code> Hadamard products between the kernel matrices according to the <code>intr</code> indices. Thus <code>h = p + m</code>, regardless of parsimonious or non-parsimonious interactions.</p>
+<p><code>ind1</code> and <code>ind2</code> together give the index of all possible two-way interactions. In a <code>h x h</code> matrix, these are the row (<code>ind1</code>) and column (<code>ind2</code>) indices of the upper triangular matrix excluding the diagonal entries.</p>
+<p>The goal is to efficiently compute a list of length <code>h</code> which contains the <code>H.mat_i ^ 2</code> for <code>i = 1,...,h</code>. Incidentally, we have used <code>q</code> to denote the expanded <code>lambda</code> length which includes interactions and higher order terms, so <code>q=l+m</code>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">indxFn &lt;-<span class="st"> </span>function(k) {
+  <span class="co"># Indexer helper function used to create indices for H2l. Note: intr, ind1 and</span>
+  <span class="co"># ind2 are created in kernL().</span>
+  ind.int1 &lt;-<span class="st"> </span>intr[<span class="dv">1</span>, ] ==<span class="st"> </span>k; ind.int2 &lt;-<span class="st"> </span>intr[<span class="dv">2</span>, ] ==<span class="st"> </span>k  <span class="co"># locating var/kernel matrix</span>
+  ind.int &lt;-<span class="st"> </span><span class="kw">which</span>(ind.int1 |<span class="st"> </span>ind.int2)                   <span class="co"># of interactions (out of 1:no.int)</span>
+  k.int &lt;-<span class="st"> </span>ind.int +<span class="st"> </span>p  <span class="co"># which kernel matrix has interactions involving k</span>
+  k.int.lam &lt;-<span class="st"> </span><span class="kw">c</span>(intr[<span class="dv">1</span>, ][ind.int2], intr[<span class="dv">2</span>, ][ind.int1])  <span class="co"># which has </span>
+                                                            <span class="co"># interaction with k?</span>
+  nok &lt;-<span class="st"> </span>(<span class="dv">1</span>:p)[-k]  <span class="co"># all variables excluding k</span>
+  k.noint &lt;-<span class="st"> </span><span class="kw">which</span>(!(ind.int1 |<span class="st"> </span>ind.int2)) +<span class="st"> </span>p  <span class="co"># the opposite of k.int</span>
+
+  <span class="co"># P.mat %*% R.mat + R.mat %*% P.mat indices ----------------------------------</span>
+  za &lt;-<span class="st"> </span><span class="kw">which</span>((ind1 %in%<span class="st"> </span>k &amp;<span class="st"> </span>ind2 %in%<span class="st"> </span>nok) |<span class="st"> </span>(ind2 %in%<span class="st"> </span>k &amp;<span class="st"> </span>ind1 %in%<span class="st"> </span>nok))
+  grid.PR &lt;-<span class="st"> </span><span class="kw">expand.grid</span>(k.int, nok)
+  zb &lt;-<span class="st"> </span><span class="kw">which</span>((ind1 %in%<span class="st"> </span>grid.PR[,<span class="dv">1</span>] &amp;<span class="st"> </span>ind2 %in%<span class="st"> </span>grid.PR[,<span class="dv">2</span>]) |
+<span class="st">              </span>(ind2 %in%<span class="st"> </span>grid.PR[,<span class="dv">1</span>] &amp;<span class="st"> </span>ind1 %in%<span class="st"> </span>grid.PR[,<span class="dv">2</span>]))
+  grid.PR.lam &lt;-<span class="st"> </span><span class="kw">expand.grid</span>(k.int.lam, nok)
+
+  <span class="co"># P.mat %*% U.mat + U.mat %*% P.mat indices ----------------------------------</span>
+  grid.PU1 &lt;-<span class="st"> </span><span class="kw">expand.grid</span>(k, k.noint)
+  zc &lt;-<span class="st"> </span><span class="kw">which</span>((ind1 %in%<span class="st"> </span>grid.PU1[,<span class="dv">1</span>] &amp;<span class="st"> </span>ind2 %in%<span class="st"> </span>grid.PU1[,<span class="dv">2</span>]) |
+<span class="st">              </span>(ind2 %in%<span class="st"> </span>grid.PU1[,<span class="dv">1</span>] &amp;<span class="st"> </span>ind1 %in%<span class="st"> </span>grid.PU1[,<span class="dv">2</span>]))
+  grid.PU2 &lt;-<span class="st"> </span><span class="kw">expand.grid</span>(k.int, k.noint)
+  zd &lt;-<span class="st"> </span><span class="kw">apply</span>(grid.PU2, <span class="dv">1</span>, findH2, <span class="dt">ind1 =</span> ind1, <span class="dt">ind2 =</span> ind2)
+  grid.PU.lam &lt;-<span class="st"> </span><span class="kw">expand.grid</span>(k.int.lam, k.noint)
+
+  <span class="co"># P.mat %*% P.mat indices ----------------------------------------------------</span>
+  grid.Psq &lt;-<span class="st"> </span><span class="kw">t</span>(<span class="kw">combn</span>(<span class="kw">c</span>(k, k.int), <span class="dv">2</span>))
+  ze &lt;-<span class="st"> </span><span class="kw">apply</span>(grid.Psq, <span class="dv">1</span>, findH2, <span class="dt">ind1 =</span> ind1, <span class="dt">ind2 =</span> ind2 )
+  grid.Psq.lam &lt;-<span class="st"> </span><span class="ot">NULL</span>
+  if (<span class="kw">length</span>(k.int.lam) &gt;<span class="st"> </span><span class="dv">0</span>) grid.Psq.lam &lt;-<span class="st"> </span><span class="kw">t</span>(<span class="kw">combn</span>(<span class="kw">c</span>(<span class="dv">0</span>, k.int.lam), <span class="dv">2</span>))
+
+  <span class="kw">list</span>(
+    <span class="dt">k.int     =</span> k.int,
+    <span class="dt">k.int.lam =</span> k.int.lam,
+    <span class="dt">PRU       =</span> <span class="kw">c</span>(za,zc,zb,zd),
+    <span class="dt">PRU.lam1  =</span> <span class="kw">c</span>(<span class="kw">rep</span>(<span class="dv">0</span>, <span class="kw">length</span>(nok) +<span class="st"> </span><span class="kw">length</span>(k.noint)),
+                  grid.PR.lam[,<span class="dv">1</span>], grid.PU.lam[,<span class="dv">1</span>]),
+    <span class="dt">PRU.lam2  =</span> <span class="kw">c</span>(nok, k.noint, grid.PR.lam[,<span class="dv">2</span>], grid.PU.lam[,<span class="dv">2</span>]),
+    <span class="dt">Psq       =</span> <span class="kw">c</span>(k, k.int),
+    <span class="dt">Psq.lam   =</span> k.int.lam,
+    <span class="dt">P2        =</span> ze,
+    <span class="dt">P2.lam1   =</span> grid.Psq.lam[,<span class="dv">1</span>],
+    <span class="dt">P2.lam2   =</span> grid.Psq.lam[,<span class="dv">2</span>]
+    )
+}
+
+findH2 &lt;-<span class="st"> </span>function(z, ind1, ind2){
+  <span class="co"># This function finds position of H2 (cross-product terms of H). Used in</span>
+  <span class="co"># indxFn()</span>
+  x &lt;-<span class="st"> </span>z[<span class="dv">1</span>]; y &lt;-<span class="st"> </span>z[<span class="dv">2</span>]
+  <span class="kw">which</span>((ind1 ==<span class="st"> </span>x &amp;<span class="st"> </span>ind2 ==<span class="st"> </span>y) |<span class="st"> </span>(ind2 ==<span class="st"> </span>x &amp;<span class="st"> </span>ind1 ==<span class="st"> </span>y))
+}</code></pre></div>
+</div>
+<div id="example" class="section level2">
+<h2>Example</h2>
+<p>Regression with 3 covariates and two-way interactions between all 3 covariates. Here, <code>p = 3</code>, <code>l = 3</code> and <code>h = q = 6</code>. In full, the index of the <code>H.mat</code> is <code>c(1, 2, 3, 1:2, 1:3, 2:3)</code>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(mod &lt;-<span class="st"> </span><span class="kw">kernL</span>(stack.loss ~<span class="st"> </span>. ^<span class="st"> </span><span class="dv">2</span>, <span class="dt">data =</span> stackloss))
+## 
+## Sample size =  21 
+## Number of x variables, p =  3 
+## Number of scale parameters, l =  3 
+## Number of interactions =  3 
+## 
+## Info on H matrix:
+## 
+## List of 6
+##  $ Air.Flow             : Canonical [1:21, 1:21] 383 383 285.2 30.8 30.8 ...
+##  $ Water.Temp           : Canonical [1:21, 1:21] 34.87 34.87 23.06 17.15 5.34 ...
+##  $ Acid.Conc.           : Canonical [1:21, 1:21] 7.37 4.65 10.08 1.94 1.94 ...
+##  $ Air.Flow:Water.Temp  : Canonical x Canonical [1:21, 1:21] 13355 13355 6575 528 164 ...
+##  $ Air.Flow:Acid.Conc.  : Canonical x Canonical [1:21, 1:21] 2822 1782.3 2875.1 59.6 59.6 ...
+##  $ Water.Temp:Acid.Conc.: Canonical x Canonical [1:21, 1:21] 256.9 162.2 232.4 33.3 10.4 ...
+p &lt;-<span class="st"> </span><span class="dv">3</span></code></pre></div>
+<p>The index of all two-way interactions are obtained by the kernel loader function. It is contained in <code>model$intr</code>. The following shows the indices of the variables which have two-way interactions. For example, variable 1 interacts with variable 2, variable 1 with 3 and finally 2 with 3. This matrix will always have 2 rows, and columns equal to <code>m</code>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">intr &lt;-<span class="st"> </span>mod$model$intr
+<span class="kw">colnames</span>(intr) &lt;-<span class="st"> </span><span class="ot">NULL</span>
+intr
+##      [,1] [,2] [,3]
+## [1,]    1    1    2
+## [2,]    2    3    3</code></pre></div>
+<p>Next, we list out the indices of all possible two-way terms. This is used to compute the cross-product when multilpying out the square of a sum of matrices.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">h &lt;-<span class="st"> </span><span class="kw">length</span>(mod$Hl)
+z &lt;-<span class="st"> </span><span class="dv">1</span>:h
+(ind1 &lt;-<span class="st"> </span><span class="kw">rep</span>(z, <span class="dt">times =</span> (<span class="kw">length</span>(z) -<span class="st"> </span><span class="dv">1</span>):<span class="dv">0</span>))
+##  [1] 1 1 1 1 1 2 2 2 2 3 3 3 4 4 5
+(ind2 &lt;-<span class="st"> </span><span class="kw">unlist</span>(<span class="kw">lapply</span>(<span class="dv">2</span>:<span class="kw">length</span>(z), function(x) <span class="kw">c</span>(<span class="ot">NA</span>, z)[-(<span class="dv">0</span>:x)])))
+##  [1] 2 3 4 5 6 3 4 5 6 4 5 6 5 6 6</code></pre></div>
+<div id="indexing-the-kernel-matrrix-list-hl" class="section level3">
+<h3>Indexing the kernel matrrix list <code>Hl</code></h3>
+<p>All of the above would be performed in <code>kernL()</code> so <code>ind1</code> and <code>ind2</code> would be available in environment. We now enter the <code>indxFn()</code> function. Set <code>k = 1</code>. First find the index for which variable <code>k</code> has interactions (in relation to the positioning in <code>intr</code>). Variable 1 appears in columns 1 and 2 of <code>intr</code>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">k &lt;-<span class="st"> </span><span class="dv">1</span>
+ind.int1 &lt;-<span class="st"> </span>intr[<span class="dv">1</span>, ] ==<span class="st"> </span>k; ind.int2 &lt;-<span class="st"> </span>intr[<span class="dv">2</span>, ] ==<span class="st"> </span>k
+(ind.int &lt;-<span class="st"> </span><span class="kw">which</span>(ind.int1 |<span class="st"> </span>ind.int2))
+## [1] 1 2</code></pre></div>
+<p>Which of the Hadamard products (i.e. <code>intr</code>) involve variable <code>k</code>, and where are the relevant Hadamard products in relation to the full index? The reason for the formula below is that the Hadamard products are calculated in the same order that appears in <code>intr</code>, and we add <code>p</code> because the first <code>p</code> elements are the <code>p</code> kernel matrices.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(k.int &lt;-<span class="st"> </span>ind.int +<span class="st"> </span>p)
+## [1] 4 5</code></pre></div>
+<p>Which variables have interaction with variable <code>k</code>? When I wrote this, I was thinking which of the <span class="math inline">\(\lambda_j\)</span> need to be multipled by <span class="math inline">\(\lambda_k\)</span>, <span class="math inline">\(j \neq k\)</span>? In other words, what are the other half of the pair of variable <code>k</code> in the matrix <code>intr</code>?</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(k.int.lam &lt;-<span class="st"> </span><span class="kw">c</span>(intr[<span class="dv">1</span>, ][ind.int2], intr[<span class="dv">2</span>, ][ind.int1]))
+## [1] 2 3</code></pre></div>
+<p>Next I simply call <code>nok</code> the indices of all variables excluding <code>k</code>. <em>sidenote: I am beginning to think that <code>k.int.lam == nok</code></em>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(nok &lt;-<span class="st"> </span>(<span class="dv">1</span>:p)[-k])
+## [1] 2 3</code></pre></div>
+<p>Finally, these are the indices of the Hadamard products which do not involve variable <code>k</code>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(k.noint &lt;-<span class="st"> </span><span class="kw">which</span>(!(ind.int1 |<span class="st"> </span>ind.int2)) +<span class="st"> </span>p)
+## [1] 6</code></pre></div>
+</div>
+<div id="indices-for-mathbf-p_k-mathbf-r_k-mathbf-p_k-mathbf-r_ktop" class="section level3">
+<h3>Indices for <span class="math inline">\(\mathbf P_k \mathbf R_k + (\mathbf P_k \mathbf R_k)^\top\)</span></h3>
+<p>We have a list called <code>H2l</code> which contains all possible two-way terms <code>Hi %*% Hj + Hj %*% Hi</code>, <code>i,j = 1,...,h</code> which arises as a result of squaring <code>H = H1 + ... + Hh</code>. It is efficient to calculate these two-way terms once at the beginning and then recall them as needed. For our example, the entries of this list consist of</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ind &lt;-<span class="st"> </span><span class="kw">paste</span>(ind1, ind2, <span class="dt">sep =</span> <span class="st">&quot;x&quot;</span>)
+<span class="kw">names</span>(ind) &lt;-<span class="st"> </span><span class="kw">as.character</span>(<span class="dv">1</span>:<span class="kw">length</span>(ind))
+ind
+##     1     2     3     4     5     6     7     8     9    10    11    12 
+## &quot;1x2&quot; &quot;1x3&quot; &quot;1x4&quot; &quot;1x5&quot; &quot;1x6&quot; &quot;2x3&quot; &quot;2x4&quot; &quot;2x5&quot; &quot;2x6&quot; &quot;3x4&quot; &quot;3x5&quot; &quot;3x6&quot; 
+##    13    14    15 
+## &quot;4x5&quot; &quot;4x6&quot; &quot;5x6&quot;</code></pre></div>
+<p>For clarity, in this example we rename the entries of <code>ind</code> to reflect the three unique scale parameters, as follows:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ind.tmp
+##         1         2         3         4         5         6         7 
+##     &quot;1x2&quot;     &quot;1x3&quot;   &quot;1x1:2&quot;   &quot;1x1:3&quot;   &quot;1x2:3&quot;     &quot;2x3&quot;   &quot;2x1:2&quot; 
+##         8         9        10        11        12        13        14 
+##   &quot;2x1:3&quot;   &quot;2x2:3&quot;   &quot;3x1:2&quot;   &quot;3x1:3&quot;   &quot;3x2:3&quot; &quot;1:2x1:3&quot; &quot;1:2x2:3&quot; 
+##        15 
+## &quot;1:3x2:3&quot;</code></pre></div>
+<p>To remind ourselves, the matrices <span class="math inline">\(\mathbf P_k\)</span>, <span class="math inline">\(\mathbf R_k\)</span> and the product <span class="math inline">\(\mathbf P_k \mathbf R_k\)</span> are defined as</p>
+<p><span class="math display">\[
+\begin{align}
+    \mathbf P_k &amp;= \mathbf H_k +  \sum_{j\in M}\lambda_j\mathbf H_{kj} \\
+    \mathbf R_k &amp;= \sum_{j\neq k} \lambda_j \mathbf H_j \\
+    \mathbf P_k \mathbf R_k &amp;= \sum_{j\neq k} \lambda_j \mathbf H_k\mathbf H_j + \sum_{j\in M} \sum_{j'\neq k} \lambda_j\lambda_{j'} \mathbf H_{kj} \mathbf H_{j'}
+\end{align}
+\]</span></p>
+<p>For now, ignore the scale parameters in the formulae above, and just concentrate on the kernel matrices. For the first part of <span class="math inline">\(\mathbf P_k \mathbf R_k\)</span>, we require the matrix product indices where variables <span class="math inline">\(k\)</span> is multiplied with all other variables except itself. We call this <code>za</code>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(za &lt;-<span class="st"> </span><span class="kw">which</span>((ind1 %in%<span class="st"> </span>k &amp;<span class="st"> </span>ind2 %in%<span class="st"> </span>nok) |<span class="st"> </span>(ind2 %in%<span class="st"> </span>k &amp;<span class="st"> </span>ind1 %in%<span class="st"> </span>nok)))
+## [1] 1 2
+
+<span class="co"># Check</span>
+ind[za]
+##     1     2 
+## &quot;1x2&quot; &quot;1x3&quot;</code></pre></div>
+<p>For the second part, it is a double sum of the products of the Hadamard matrices involving variable <code>k</code>, and all the kernel matrices except <code>k</code>. We have already coded the indices as <code>k.int</code> and <code>nok</code> respectively. Note that these indices are in relation to the full index <code>1, 2, ..., 6</code>. In <code>R</code>, we can use the <code>expand.grid()</code> function to create a data frame from all possible combinations of <code>k.int</code> and <code>nok</code>, which would give us the index of the double sum. We then find the positions of these coordinates in <code>ind1</code> and <code>ind2</code>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(grid.PR &lt;-<span class="st"> </span><span class="kw">expand.grid</span>(k.int, nok))
+##   Var1 Var2
+## 1    4    2
+## 2    5    2
+## 3    4    3
+## 4    5    3
+(zb &lt;-<span class="st"> </span><span class="kw">which</span>((ind1 %in%<span class="st"> </span>grid.PR[,<span class="dv">1</span>] &amp;<span class="st"> </span>ind2 %in%<span class="st"> </span>grid.PR[,<span class="dv">2</span>]) |
+<span class="st">            </span>(ind2 %in%<span class="st"> </span>grid.PR[,<span class="dv">1</span>] &amp;<span class="st"> </span>ind1 %in%<span class="st"> </span>grid.PR[,<span class="dv">2</span>])
+))
+## [1]  7  8 10 11</code></pre></div>
+<p>Finally, what’s left is to take care of the scale parameters. Our scale parameters are contained in the vector of length <code>q=6</code> called <code>lambda</code>. For the first part, that is simply the index <code>nok</code>. For the second part, we need to find the indices using <code>expand.grid()</code> again, but this time using the indices <code>k.int.lam</code> and <code>nok</code>. <code>k.int.lam</code> would give us the indices of the scale parameters which have interactions with <code>k</code>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(nok)
+## [1] 2 3
+(grid.PR.lam &lt;-<span class="st"> </span><span class="kw">expand.grid</span>(k.int.lam, nok))
+##   Var1 Var2
+## 1    2    2
+## 2    3    2
+## 3    2    3
+## 4    3    3</code></pre></div>
+<p>The required product <span class="math inline">\(\mathbf P_k \mathbf R_k\)</span> is then, in a manner of speaking,</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">sum</span>(lambda[PR.lam index] *<span class="st"> </span>H2l[PR index])</code></pre></div>
+</div>
+<div id="indices-for-mathbf-p_k-mathbf-u_k-mathbf-p_k-mathbf-u_ktop" class="section level3">
+<h3>Indices for <span class="math inline">\(\mathbf P_k \mathbf U_k +(\mathbf P_k \mathbf U_k)^\top\)</span></h3>
+<p>The formulae of interest are</p>
+<p><span class="math display">\[
+\begin{align}
+    \mathbf P_k &amp;= \mathbf H_k +  \sum_{j\in M}\lambda_j\mathbf H_{kj} \\
+    \mathbf U_k &amp;= \mathop{\sum\sum}_{k',j \in M \ \&amp; \ k'\neq k} \lambda_{k'} \lambda_j \mathbf H_{k'j} \\
+    \mathbf P_k \mathbf U_k &amp;= \mathop{\sum\sum}_{k',j \in M \ \&amp; \ k'\neq k} \lambda_j \lambda_{k'} \mathbf H_k \mathbf H_{k'j} + \mathop{\sum\sum}_{j,k',j' \in M \ \&amp; \ k'\neq k} \lambda_j \lambda_{k'} \lambda_{j'} \mathbf H_{kj} \mathbf H_{k'j'} 
+\end{align}
+\]</span></p>
+<p>The idea is similar to the above, albeit the indices can be a bit confusing. For the first part of the sum, we need the indices of the double sum involving <code>k.noint</code> paired with <code>k</code>. Recall that <code>k.noint</code> are the indices of the Hadamard products which do not involve variable <code>k</code> (mathematically, it is the set <span class="math inline">\(\{(k',j) \in M : k' \neq k\}\)</span>). We then find the corresponding index from <code>ind1</code> and <code>ind2</code>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(grid.PU1 &lt;-<span class="st"> </span><span class="kw">expand.grid</span>(k, k.noint))
+##   Var1 Var2
+## 1    1    6
+(zc &lt;-<span class="st"> </span><span class="kw">which</span>((ind1 %in%<span class="st"> </span>grid.PU1[,<span class="dv">1</span>] &amp;<span class="st"> </span>ind2 %in%<span class="st"> </span>grid.PU1[,<span class="dv">2</span>]) |
+<span class="st">             </span>(ind2 %in%<span class="st"> </span>grid.PU1[,<span class="dv">1</span>] &amp;<span class="st"> </span>ind1 %in%<span class="st"> </span>grid.PU1[,<span class="dv">2</span>])))
+## [1] 5
+
+<span class="co"># Check</span>
+ind[zc]
+##     5 
+## &quot;1x6&quot;
+ind.tmp[zc]
+##       5 
+## &quot;1x2:3&quot;</code></pre></div>
+<p>For the second part, we use <code>expand.grid()</code> to find the indices for the double sum involving <code>k.int</code> (the Hadamard products involving <code>k</code>) and <code>k.noint</code>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(grid.PU2 &lt;-<span class="st"> </span><span class="kw">expand.grid</span>(k.int, k.noint))
+##   Var1 Var2
+## 1    4    6
+## 2    5    6
+(zd &lt;-<span class="st"> </span><span class="kw">which</span>((ind1 %in%<span class="st"> </span>grid.PU2[,<span class="dv">1</span>] &amp;<span class="st"> </span>ind2 %in%<span class="st"> </span>grid.PU2[,<span class="dv">2</span>]) |
+<span class="st">             </span>(ind2 %in%<span class="st"> </span>grid.PU2[,<span class="dv">1</span>] &amp;<span class="st"> </span>ind1 %in%<span class="st"> </span>grid.PU2[,<span class="dv">2</span>])))
+## [1] 14 15
+
+<span class="co"># Check</span>
+ind[zd]
+##    14    15 
+## &quot;4x6&quot; &quot;5x6&quot;
+ind.tmp[zd]
+##        14        15 
+## &quot;1:2x2:3&quot; &quot;1:3x2:3&quot;</code></pre></div>
+<p>Finally, we need to take care of the scale parameters. For the first part, we only require the index from <code>k.noint</code>, while for the second part we need the combinations of <code>k.int.lam</code> (indices of the scale parameters which have interactions with k) and <code>k.noint</code>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(k.noint)
+## [1] 6
+(grid.PU.lam &lt;-<span class="st"> </span><span class="kw">expand.grid</span>(k.int.lam, k.noint))
+##   Var1 Var2
+## 1    2    6
+## 2    3    6</code></pre></div>
+</div>
+<div id="calculation-of-mathbf-s_k" class="section level3">
+<h3>Calculation of <span class="math inline">\(\mathbf S_k\)</span></h3>
+<p>The matrix <span class="math inline">\(\mathbf S_k\)</span> is given by the formula</p>
+<p><span class="math display">\[
+  \mathbf S_k = \mathbf P_k\mathbf R_k + (\mathbf P_k\mathbf R_k)^\top + \mathbf P_k\mathbf U_k + (\mathbf P_k\mathbf U_k)^\top.
+\]</span></p>
+<p>As <span class="math inline">\(\mathbf P_k\mathbf R_k\)</span> and <span class="math inline">\(\mathbf P_k\mathbf U_k\)</span> are made up linearly of two-way matrix products of the kernel matrices which are stored in <code>H2l</code>, all we need is to add the right entries of <code>H2l</code> together (and not forgetting the respective scale parameters). The indices are given by the function <code>indxFn()</code>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">indB &lt;-<span class="st"> </span><span class="kw">indxFn</span>(<span class="dv">1</span>)
+indB$PRU  <span class="co"># = c(za, zc, zb, zd) i.e. index of Hl to sum together</span>
+## [1]  1  2  5  7  8 10 11 14 15
+<span class="kw">rbind</span>(indB$PRU.lam1, indB$PRU.lam2)  <span class="co"># index of the lambdas to cross-product with Hl</span>
+##      [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8] [,9]
+## [1,]    0    0    0    2    3    2    3    2    3
+## [2,]    2    3    6    2    2    3    3    6    6</code></pre></div>
+<p>For <code>k=1</code>, we calculate <span class="math inline">\(\mathbf S_1\)</span> as</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">lambda.PRU &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="kw">rep</span>(<span class="dv">1</span>, <span class="kw">sum</span>(indB$PRU.lam1 ==<span class="st"> </span><span class="dv">0</span>)), lambda[indB$PRU.lam1])
+lambda.PRU &lt;-<span class="st"> </span>lambda.PRU *<span class="st"> </span>lambda[indB$PRU.lam2]
+S &lt;-<span class="st"> </span><span class="kw">Reduce</span>(<span class="st">&quot;+&quot;</span>, <span class="kw">mapply</span>(<span class="st">&quot;*&quot;</span>, H2l[indB$PRU], lambda.PRU, <span class="dt">SIMPLIFY =</span> <span class="ot">FALSE</span>))</code></pre></div>
+<p>This is an efficient way to calculate <span class="math inline">\(\mathbf S_k\)</span> by simply recalling the already multiplied matrices. In the EM algorithm, we would need to repeat this calculation for each <code>k=1,...,l</code> and also for each EM step <code>t=1,2,...</code>.</p>
+<p>Note that <span class="math inline">\(\mathbf S_k\)</span> is calculated this way only if there are parsimonious interactions. When only a single scale paramters is used (e.g. using <code>one.lam = TRUE</code>), then <span class="math inline">\(\mathbf S_k = 0\)</span>. When no interactions are present, then <span class="math inline">\(\mathbf U_k = 0\)</span>, and we only need <span class="math inline">\(\mathbf P_k \mathbf R_k + (\mathbf P_k \mathbf R_k)^\top\)</span>. But this becomes easier because <span class="math inline">\(\mathbf P_k = \mathbf H_k\)</span> as there are no Hadamard interactions.</p>
+<p>Also realise that we never calculate <span class="math inline">\(\mathbf R_k\)</span> and <span class="math inline">\(\mathbf U_k\)</span> explicitly, because only <span class="math inline">\(\mathbf S_k\)</span> is required in the closed form expression of <span class="math inline">\(\lambda_k^{(t+1)}\)</span>.</p>
+</div>
+<div id="efficient-calculation-of-mathbf-p_k2" class="section level3">
+<h3>Efficient calculation of <span class="math inline">\(\mathbf P_k^2\)</span></h3>
+<p>When (parsimonious) interactions are present, <span class="math inline">\(\mathbf P_k^2\)</span> is given by</p>
+<!-- $$ -->
+<!-- \begin{align} -->
+<!--   \mathbf P_k^2 &= (\mathbf H_k + \sum_{j\in M}\lambda_j\mathbf H_{kj})^2 \\ -->
+<!--   &= \mathbf H_k^2 + \sum_{j\in M} \lambda_j^2 \mathbf H_{kj}^2 +  -->
+<!--   \sum_{j\in M}\lambda_j (\mathbf H_k\mathbf H_{kj} + \mathbf H_{kj}\mathbf H_k) \\ -->
+<!-- \end{align} -->
+<!-- $$ -->
+<p>This sum is made of two parts. The first is by adding up relevant squared kernel matrices and Hadamard products. We can collate these matrix products into a list of length <code>h = l + m</code> called <code>Hsql</code>. The second part comes from <code>H2l</code> as we have discussed above. Now it is a matter of summing up the right parts.</p>
+<p>For <code>k=1</code>, the first part is getting the indices of the squared terms correctly. This is easy as we have already obtained this previously.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(Psq &lt;-<span class="st"> </span><span class="kw">c</span>(k, k.int))
+## [1] 1 4 5
+(Psq.lam &lt;-<span class="st"> </span>k.int.lam)
+## [1] 2 3</code></pre></div>
+<p>For the second part, we use <code>combn()</code> to generate all possible two-way combinations of <code>c(k, k.int)</code>. This would give us the indices for the sums in the second part above. The corresponding scale paramters <code>lambda</code> are obtained the same way, but from all possible combinations of <code>c(0, k.int.lam)</code>. The two columns of <code>grid.Psq.lam</code> give the index for which <code>lambda</code> needs to be multiplied. An entry of <code>0</code> means that only the other non-zero column entry is used, e.g. for <code>grid.Psq.lam[1,]</code>, we multiply <code>1 * lambda[2]</code>; for <code>grid.Psq.lam[3,]</code>, we multiply <code>lambda[2] * lambda[3]</code>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(grid.Psq &lt;-<span class="st"> </span><span class="kw">t</span>(<span class="kw">combn</span>(<span class="kw">c</span>(k, k.int), <span class="dv">2</span>)))
+##      [,1] [,2]
+## [1,]    1    4
+## [2,]    1    5
+## [3,]    4    5
+(ze &lt;-<span class="st"> </span><span class="kw">which</span>((ind1 %in%<span class="st"> </span>grid.Psq[,<span class="dv">1</span>] &amp;<span class="st"> </span>ind2 %in%<span class="st"> </span>grid.Psq[,<span class="dv">2</span>]) |
+<span class="st">             </span>(ind2 %in%<span class="st"> </span>grid.Psq[,<span class="dv">1</span>] &amp;<span class="st"> </span>ind1 %in%<span class="st"> </span>grid.Psq[,<span class="dv">2</span>])))
+## [1]  3  4 13
+
+<span class="co"># Check</span>
+ind[ze]
+##     3     4    13 
+## &quot;1x4&quot; &quot;1x5&quot; &quot;4x5&quot;
+ind.tmp[ze]
+##         3         4        13 
+##   &quot;1x1:2&quot;   &quot;1x1:3&quot; &quot;1:2x1:3&quot;
+
+grid.Psq.lam &lt;-<span class="st"> </span><span class="ot">NULL</span>
+if (<span class="kw">length</span>(k.int.lam) &gt;<span class="st"> </span><span class="dv">0</span>) grid.Psq.lam &lt;-<span class="st"> </span><span class="kw">t</span>(<span class="kw">combn</span>(<span class="kw">c</span>(<span class="dv">0</span>, k.int.lam), <span class="dv">2</span>))
+grid.Psq.lam
+##      [,1] [,2]
+## [1,]    0    2
+## [2,]    0    3
+## [3,]    2    3</code></pre></div>
+<p>The code, which is found in the function for <code>kernL()</code>, is given by</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># First part of sum</span>
+Psql[[k]] &lt;&lt;-<span class="st"> </span><span class="kw">Reduce</span>(<span class="st">&quot;+&quot;</span>, <span class="kw">mapply</span>(<span class="st">&quot;*&quot;</span>, Hsql[indB$Psq],
+                                 <span class="kw">c</span>(<span class="dv">1</span>, lambda[indB$Psq.lam] ^<span class="st"> </span><span class="dv">2</span>),
+                                 <span class="dt">SIMPLIFY =</span> <span class="ot">FALSE</span>))
+
+<span class="co"># Second part of sum</span>
+lambda.P2 &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="kw">rep</span>(<span class="dv">1</span>, <span class="kw">sum</span>(indB$P2.lam1 ==<span class="st"> </span><span class="dv">0</span>)), lambda[indB$P2.lam1])
+lambda.P2 &lt;-<span class="st"> </span>lambda.P2 *<span class="st"> </span>lambda[indB$P2.lam2]
+Psql[[k]] &lt;&lt;-<span class="st"> </span>Psql[[k]] +<span class="st"> </span><span class="kw">Reduce</span>(<span class="st">&quot;+&quot;</span>, <span class="kw">mapply</span>(<span class="st">&quot;*&quot;</span>, H2l[indB$P2],
+                                             lambda.P2,
+                                             <span class="dt">SIMPLIFY =</span> <span class="ot">FALSE</span>))</code></pre></div>
+<p>Note that in cases where there are no interactions (or with non-parsimonious interactions), then <span class="math inline">\(\mathbf P_k^2 = \mathbf H_k^2\)</span> and does not depend on <span class="math inline">\(\lambda_k\)</span>, thus can be calculated once and stored.</p>
+</div>
+</div>
+
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

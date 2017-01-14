@@ -31,6 +31,8 @@
 #' smoothing effects. The smoothness is controlled somewhat by the Hurst
 #' coefficient.
 #'
+#' More information is available from the \href{https://github.com/haziqjamil/iprior/wiki/Kernel-functions}{Wiki}.
+#'
 #' @param x,y A vector, matrix or data frame. \code{x} and \code{y} must have
 #'   similar dimensions.
 #' @param gamma The Hurst coefficient when using the FBM kernel.
@@ -89,6 +91,37 @@ fn.H1 <- function(x, y = NULL) {
 	}
 	class(mat) <- "Pearson"
 	mat
+}
+
+# NOT USED YET
+fn.H1a <- function(x, y = NULL) {
+  # Efficient Pearson kernel
+  # Args: x,y vector of type "factor"
+  ytmp <- y
+  if (is.null(ytmp)) y <- x
+  if (any(is.numeric(x), is.numeric(y))) {
+    warning("Non-factor type vector used with Pearson kernel.", call. = FALSE)
+  }
+  # Combine x and y, unfactorise them and work with numbers --------------------
+  x <- factor(x); y <- factor(y)
+  z <- unlist(list(x,y))  # simply doing c(x,y) messes with the factors
+  z <- as.numeric(z)
+  x <- z[1:length(x)]; y <- z[(length(x) + 1):length(z)]
+  if (any(is.na(match(y,x)))) {
+    stop("The vector y contains elements not belonging to x.")
+  }
+  prop <- table(x)/length(x)
+
+  unqy <- sort(unique(y))
+  unqx <- sort(unique(x))
+  tmp <- match(unqy, unqx)
+
+  mat <- matrix(-1, nrow = length(unqy), ncol = length(unqx))
+  for (i in 1:length(tmp)) {
+    mat[i, i] <- 1 / prop[unqy[i]] - 1
+  }
+  class(mat) <- "EfficientPearson"
+  mat
 }
 
 fn.H2 <- function(x, y = NULL) {

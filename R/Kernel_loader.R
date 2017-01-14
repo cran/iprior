@@ -115,20 +115,25 @@
 #' kernL(stack.loss ~ ., data = stackloss,
 #'       model = list(yname = "response", xname = c("air", "water", "acid")))
 #'
+#' # Sometimes the print output is too long, can use str() options here
+#' print(mod, strict.width = "cut", width = 50)
+#'
 #' @name kernL
 #' @export
 kernL <- function(y, ..., model = list()) UseMethod("kernL")
 
 #' @export
 kernL.default <- function(y, ..., model = list()) {
-  x <- list(...)
+  x <- list(...)  # don't list if updating ipriorKernel
+  if (length(x) == 1 && is.ipriorX(x[[1]])) x <- unlist(x, recursive = FALSE)
   if (testXForm(x)) x <- unlist(x, recursive = FALSE)
   x <- lapply(x, as.matrix)
+  class(x) <- "ipriorX"
   n <- length(y)
   p <- length(x)
 
   # Model options and checks ---------------------------------------------------
-  mod <- list(kernel = "Canonical", Hurst = 0.5, interactions = NULL,
+  mod <- list(kernel = "Canonical", Hurst = NULL, interactions = NULL,
               parsm = TRUE, one.lam = FALSE, yname = NULL, xname = NULL,
               silent = TRUE, order = as.character(1:p), intr.3plus = NULL,
               delete = NULL)
@@ -148,18 +153,25 @@ kernL.default <- function(y, ..., model = list()) {
     warning(paste0("Too many kernel options specification (not of length ", p, ")"),
             call. = FALSE)
   }
-  kernel <- rep(NA, p)
-  suppressWarnings(kernel[] <- mod$kernel)
+  Hurst <- kernel <- rep(NA, p)
+  suppressWarnings(kernel[] <- splitKernel(mod$kernel))
+  # The next two lines ensure that the Pearson kernel is used for factors
   whichPearson <- unlist(lapply(x, function(x) {is.factor(x) | is.character(x)}))
   kernel[whichPearson] <- "Pearson"
-  mod$kernel <- kernel
-  check.kern <- any("Canonical" %in% kernel)
-  check.kern <- any(c(check.kern, "FBM" %in% kernel))
-  check.kern <- any(c(check.kern, "Pearson" %in% kernel))
-  if (!check.kern) {
+  check.kern <- match(kernel, c("FBM", "Canonical", "Pearson"))
+  if (any(is.na(check.kern))) {
     stop("kernel should be one of \"Canonical\", \"Pearson\", or \"FBM\".",
          call. = FALSE)
   }
+  suppressWarnings(Hurst[] <- splitHurst(mod$kernel))
+  if (!is.null(mod$Hurst)) {
+    # User has set a single Hurst coefficient for all FBM kernels
+    suppressWarnings(Hurst[] <- mod$Hurst)
+    if (any(!is.na(Hurst))) warning("Overriding Hurst setting.", call. = FALSE)
+  }
+  Hurst[is.na(Hurst)] <- 0.5
+  mod$Hurst <- Hurst
+  mod$kernel <- kernel
 
   # Check for higher order terms -----------------------------------------------
   mod$order <- as.character(mod$order)
@@ -332,8 +344,9 @@ kernL.default <- function(y, ..., model = list()) {
       # Prepare the cross-product terms of squared kernel matrices. This is a
       # list of q_choose_2.
       for (j in 1:length(ind1)) {
-        H2l[[j]] <- Hl[[ind1[j]]] %*% Hl[[ind2[j]]] +
-          Hl[[ind2[j]]] %*% Hl[[ind1[j]]]
+        tmp.H2 <- Hl[[ind1[j]]] %*% Hl[[ind2[j]]]
+          # + Hl[[ind2[j]]] %*% Hl[[ind1[j]]]  # old way. they're symmetric!
+        H2l[[j]] <- tmp.H2 + t(tmp.H2)
         pb.count <- pb.count + 1
         if (!mod$silent) setTxtProgressBar(pb, pb.count)
       }
@@ -347,6 +360,8 @@ kernL.default <- function(y, ..., model = list()) {
           if (!mod$silent) setTxtProgressBar(pb, pb.count)
         }
         BlockB <- function(k) {
+          # Calculate Psql instead of directly P %*% P because this way
+          # is < O(n^3).
           indB <- ind[[k]]
           lambda.P <- c(1, lambda[indB$k.int.lam])
           Pl[[k]] <<- Reduce("+", mapply("*", Hl[c(k, indB$k.int)], lambda.P,
@@ -476,6 +491,6 @@ print.ipriorKernel <- function(x, ...) {
   cat("Number of scale parameters, l = ", x$l, "\n")
   cat("Number of interactions = ", x$no.int + x$no.int.3plus, "\n")
   cat("\nInfo on H matrix:\n\n")
-  str(x$Hl)
+  str(x$Hl, ...)
   cat("\n")
 }

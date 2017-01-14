@@ -1,6 +1,6 @@
 Package: iprior
 Title: Linear Regression using I-Priors
-Version: 0.6.2
+Version: 0.6.3
 Authors@R: person("Haziq", "Jamil", email = "haziq.jamil@gmail.com",
                   role = c("aut", "cre"))
 Encoding: UTF-8
@@ -18,8 +18,8 @@ LazyData: yes
 VignetteBuilder: knitr
 RoxygenNote: 5.0.1
 NeedsCompilation: yes
-Packaged: 2016-08-21 15:34:08 UTC; haziqjamil
+Packaged: 2017-01-13 15:55:30 UTC; haziqjamil
 Author: Haziq Jamil [aut, cre]
 Maintainer: Haziq Jamil <haziq.jamil@gmail.com>
 Repository: CRAN
-Date/Publication: 2016-08-21 18:33:04
+Date/Publication: 2017-01-14 12:46:37
