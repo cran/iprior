@@ -110,6 +110,13 @@ iprior <- function(...) {
 #' modf <- iprior(stack.loss ~ ., data = stackloss, model = list(one.lam = TRUE))
 #' modnf <- iprior(y = stackloss$stack.loss, x = stackloss[1:3])
 #'
+#' # Example of using the FBM kernel for smoothing models
+#' mod <- kernL(y ~ x, datfbm, model = list(kernel = "FBM"))  # Hurst = 0.5 (default)
+#' mod <- kernL(y ~ x, datfbm, model = list(kernel = "FBM,0.75"))  # custom Hurst
+#'
+#' # Fit the model using EM starting at a specific parameter value
+#' mod.fit <- iprior(mod, control = list(lambda = 8.41, psi = 0.33))
+#'
 #' @name iprior
 #' @export
 iprior.default <- function(y, ..., model = list(), control = list()) {
@@ -200,9 +207,7 @@ iprior.default <- function(y, ..., model = list(), control = list()) {
   }
 
   # Calculate fitted values and residuals --------------------------------------
-  Y.hat <- est$alpha + as.vector(crossprod(est$Hlam.mat, est$w.hat))
-  est$fitted.values <- Y.hat
-  est$residuals     <- ipriorKernel$Y - Y.hat
+  est$residuals     <- ipriorKernel$Y - est$fitted.values
   names(est$fitted.values) <- names(est$residuals) <- names(ipriorKernel$Y)
 
   # Changing the call to simply iprior -----------------------------------------

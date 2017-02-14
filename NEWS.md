@@ -1,10 +1,19 @@
+# v0.6.4
+
+* Fixed "override warning" bug in kernel loader when multiple Hurst coefficients used.
+* Updated documentation for `iprior()` and `kernL()`.
+* Trimmed down the size of `ipriorMod` objects by not saving `Psql`, `Sl`, `Hlam.mat`, and `VarY.inv`. Although these are no longer stored within an `ipriorMod` object, they can still be retrieved via the functions `Hlam()` and `vary()`.
+* Fixed a bug with `ipriorOptim()` or `fbmOptim()` whereby standard errors could not be calculated.
+* Added new features to `fbmOptim()`: Ability to specify an interval to search for, and also the maximum number of iterations for the initial EM step.
+
 # v0.6.3
 
 * Changed some code to match JSS paper.
 * Commented on the line where Pearson kernels are always used for factor-type variables. Should this always be the case?
 * Added control option to set intercept at a fixed value.
 * Added (hidden) options for `str()` when printing `ipriorKernel` objects.
-* Added function to find optimum Hurst coefficient for fitting FBM I-prior models.
+* Added  `fbmOptim()` function to find optimum Hurst coefficient for fitting FBM I-prior models.
+* Added new way to specify Hurst coefficient using the syntax `kernel = "FBM,<value>"`.
 * Wrote vignette manual guide which details how to calculate the matrices required for the closed form estimate of `lambda`.
 * Removed the T2 statistic from the `summary()` output for now.
 
