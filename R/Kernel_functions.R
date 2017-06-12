@@ -31,7 +31,8 @@
 #' smoothing effects. The smoothness is controlled somewhat by the Hurst
 #' coefficient.
 #'
-#' More information is available from the \href{https://github.com/haziqjamil/iprior/wiki/Kernel-functions}{Wiki}.
+#' More information is available from the
+#' \href{https://github.com/haziqjamil/iprior/wiki/Kernel-functions}{Wiki}.
 #'
 #' @param x,y A vector, matrix or data frame. \code{x} and \code{y} must have
 #'   similar dimensions.
@@ -41,7 +42,7 @@
 #'   or \code{"Pearson"} whose \code{[i, j]} entries are \eqn{h(}\code{y[i]},
 #'   \code{x[j]}\eqn{)}, with \eqn{h} being the kernel function. The matrix has
 #'   dimensions \code{m} by \code{n} according to the lengths of \code{y} and
-#'   \code{x} which has lengtsh \code{m} and \code{n} respectively. When a
+#'   \code{x} which has lengths \code{m} and \code{n} respectively. When a
 #'   single vector argument \code{x} is supplied, then \code{y} is taken to be
 #'   equal to \code{x}, and a symmetric \code{n} by \code{n} matrix is returned.
 #'
@@ -124,101 +125,101 @@ fn.H1a <- function(x, y = NULL) {
   mat
 }
 
-fn.H2 <- function(x, y = NULL) {
-  # Canonical kernel function.
-  if (is.null(y)) y <- x
-  tmp <- tcrossprod(y, x)
-  class(tmp) <- "Canonical"
-  tmp
-}
+# fn.H2 <- function(x, y = NULL) {
+#   # Canonical kernel function.
+#   if (is.null(y)) y <- x
+#   tmp <- tcrossprod(y, x)
+#   class(tmp) <- "Canonical"
+#   tmp
+# }
 
-fn.H2a <- function(x, y = NULL) {
-  # Centred Canonical kernel function. This is the kernel used, as opposed to
-  # the uncentred one.
-  x <- as.numeric(x)
-  if (is.null(y)) y <- x
-  else y <- as.numeric(y)
-  xbar <- mean(x)
-  tmp <- tcrossprod(y - xbar, x - xbar)
-  class(tmp) <- "Canonical"
-  tmp
-}
+# fn.H2a <- function(x, y = NULL) {
+#   # Centred Canonical kernel function. This is the kernel used, as opposed to
+#   # the uncentred one.
+#   x <- as.numeric(x)
+#   if (is.null(y)) y <- x
+#   else y <- as.numeric(y)
+#   xbar <- mean(x)
+#   tmp <- tcrossprod(y - xbar, x - xbar)
+#   class(tmp) <- "Canonical"
+#   tmp
+# }
 
-fn.H3 <- function(x, y = NULL, gamma = NULL) {
-	# The Fractional Brownian Motion kernel with Hurst coef. = gamma.
-  if (is.null(gamma)) gamma <- 0.5
-	x <- as.numeric(x)
-	n <- length(x)
-
-	if (is.null(y)) {
-		tmp <- matrix(0, n, n)
-		index.mat <- upper.tri(tmp, diag = TRUE)
-		index <- which(index.mat, arr.ind = TRUE)
-		tmp2 <- abs(x[index[, 1]]) ^ (2 * gamma) +
-		  abs(x[index[, 2]]) ^ (2 * gamma) -
-		  abs(x[index[, 1]] - x[index[, 2]]) ^ (2 * gamma)
-		tmp[index.mat] <- tmp2
-		tmp2 <- tmp; diag(tmp2) <- 0
-		tmp <- tmp + t(tmp2)
-	}
-	else{
-		y <- as.numeric(y); m <- length(y)
-		tmp <- matrix(NA, ncol = n, nrow = m)
-		for (i in 1:m) {
-			for (j in 1:n) {
-				tmp[i, j] <- abs(y[i]) ^ (2 * gamma) + abs(x[j]) ^ (2 * gamma) -
-				  abs(y[i] - x[j]) ^ (2 * gamma)
-			}
-		}
-	}
-	class(tmp) <- paste("FBM", gamma, sep = ",")
-	tmp
-}
-
-fn.H3a <- function(x, y = NULL, gamma = NULL){ #takes in vector of covariates
-	# The centred and scaled version of the FBM kernel. This is the one used
-	# instead of fn.H3a above
-  if (is.null(gamma)) gamma <- 0.5
-	x <- as.numeric(x)
-	n <- length(x)
-
-	if (is.null(y)) {
-		A <- matrix(0, n, n)
-		index.mat <- upper.tri(A)
-		index <- which(index.mat, arr.ind = TRUE)
-		tmp2 <- abs(x[index[, 1]] - x[index[, 2]]) ^ (2 * gamma)
-		A[index.mat] <- tmp2
-		A <- A + t(A)
-		rvec <- apply(A, 1, sum)
-		s <- sum(rvec)
-		rvec1 <- tcrossprod(rvec, rep(1, n))
-		tmp <- (A - rvec1 / n - t(rvec1) / n + s / (n ^ 2)) / (-2)
-	}
-	else{
-		y <- as.numeric(y)
-		m <- length(y)
-
-		A <- matrix(0, n, n)
-		index.mat <- upper.tri(A)
-		index <- which(index.mat, arr.ind = TRUE)
-		tmp2 <- abs(x[index[, 1]] - x[index[,2]]) ^ (2 * gamma)
-		A[index.mat] <- tmp2
-		A <- A + t(A)
-		rvec <- apply(A, 1, sum)
-		s <- sum(rvec)
-		rvec1 <- tcrossprod(rep(1, m), rvec)
-
-		B <- matrix(0, m, n)
-		indexy <- expand.grid(1:m, 1:n)
-		B[, ] <- abs(y[indexy[, 1]] - x[indexy[, 2]]) ^ (2 * gamma)
-		qvec <- apply(B, 1, sum)
-		qvec1 <- tcrossprod(qvec, rep(1, n))
-
-		tmp <- (B - qvec1 / n - rvec1 / n + s / (n ^ 2)) / (-2)
-	}
-	class(tmp) <- paste("FBM", gamma, sep = ",")
-	tmp
-}
+# fn.H3 <- function(x, y = NULL, gamma = NULL) {
+# 	# The Fractional Brownian Motion kernel with Hurst coef. = gamma.
+#   if (is.null(gamma)) gamma <- 0.5
+# 	x <- as.numeric(x)
+# 	n <- length(x)
+#
+# 	if (is.null(y)) {
+# 		tmp <- matrix(0, n, n)
+# 		index.mat <- upper.tri(tmp, diag = TRUE)
+# 		index <- which(index.mat, arr.ind = TRUE)
+# 		tmp2 <- abs(x[index[, 1]]) ^ (2 * gamma) +
+# 		  abs(x[index[, 2]]) ^ (2 * gamma) -
+# 		  abs(x[index[, 1]] - x[index[, 2]]) ^ (2 * gamma)
+# 		tmp[index.mat] <- tmp2
+# 		tmp2 <- tmp; diag(tmp2) <- 0
+# 		tmp <- tmp + t(tmp2)
+# 	}
+# 	else{
+# 		y <- as.numeric(y); m <- length(y)
+# 		tmp <- matrix(NA, ncol = n, nrow = m)
+# 		for (i in 1:m) {
+# 			for (j in 1:n) {
+# 				tmp[i, j] <- abs(y[i]) ^ (2 * gamma) + abs(x[j]) ^ (2 * gamma) -
+# 				  abs(y[i] - x[j]) ^ (2 * gamma)
+# 			}
+# 		}
+# 	}
+# 	class(tmp) <- paste("FBM", gamma, sep = ",")
+# 	tmp
+# }
+#
+# fn.H3a <- function(x, y = NULL, gamma = NULL) { #takes in vector of covariates
+# 	# The centred and scaled version of the FBM kernel. This is the one used
+# 	# instead of fn.H3 above
+#   if (is.null(gamma)) gamma <- 0.5
+# 	x <- as.numeric(x)
+# 	n <- length(x)
+#
+# 	if (is.null(y)) {
+# 		A <- matrix(0, n, n)
+# 		index.mat <- upper.tri(A)
+# 		index <- which(index.mat, arr.ind = TRUE)
+# 		tmp2 <- abs(x[index[, 1]] - x[index[, 2]]) ^ (2 * gamma)
+# 		A[index.mat] <- tmp2
+# 		A <- A + t(A)
+# 		rvec <- apply(A, 1, sum)
+# 		s <- sum(rvec)
+# 		rvec1 <- tcrossprod(rvec, rep(1, n))
+# 		tmp <- (A - rvec1 / n - t(rvec1) / n + s / (n ^ 2)) / (-2)
+# 	}
+# 	else{
+# 		y <- as.numeric(y)
+# 		m <- length(y)
+#
+# 		A <- matrix(0, n, n)
+# 		index.mat <- upper.tri(A)
+# 		index <- which(index.mat, arr.ind = TRUE)
+# 		tmp2 <- abs(x[index[, 1]] - x[index[,2]]) ^ (2 * gamma)
+# 		A[index.mat] <- tmp2
+# 		A <- A + t(A)
+# 		rvec <- apply(A, 1, sum)
+# 		s <- sum(rvec)
+# 		rvec1 <- tcrossprod(rep(1, m), rvec)
+#
+# 		B <- matrix(0, m, n)
+# 		indexy <- expand.grid(1:m, 1:n)
+# 		B[, ] <- abs(y[indexy[, 1]] - x[indexy[, 2]]) ^ (2 * gamma)
+# 		qvec <- apply(B, 1, sum)
+# 		qvec1 <- tcrossprod(qvec, rep(1, n))
+#
+# 		tmp <- (B - qvec1 / n - rvec1 / n + s / (n ^ 2)) / (-2)
+# 	}
+# 	class(tmp) <- paste("FBM", gamma, sep = ",")
+# 	tmp
+# }
 
 # The following three functions are able to take matrices instead of vector
 # inputs. This is required for the one.lam = TRUE option. These functions are
@@ -240,28 +241,71 @@ fnH1 <- function(x, y = NULL){
 
 #' @rdname kernel
 #' @export
-fnH2 <- function(x, y = NULL){
-	res <- 0
-	if ((ncol(x) > 1) && !is.null(ncol(x))) {
-		if ((ncol(x) != ncol(y)) && !is.null(y)) {
-		  stop("New data is structurally unsimilar.")
-		}
-		for (i in 1:ncol(x)) res <- res + fn.H2a(x = x[, i], y = y[, i])
-	}
-	else res <- fn.H2a(x, y)
-	return(res)
+fnH2 <- function(x, y = NULL) {
+  # Centred Canonical kernel function. This is the kernel used, as opposed to
+  # the uncentred one.
+  rownames(x) <- colnames(x) <- rownames(y) <- colnames(y) <- NULL
+  x <- scale(x, scale = FALSE)  # centre the variables
+  if (is.null(y)) {
+    tmp <- tcrossprod(x)
+  } else {
+    if (is.vector(y)) y <- matrix(y, ncol = ncol(x))
+    else y <- as.matrix(y)
+    y <- sweep(y, 2, attr(x ,"scaled:center"), "-")
+    tmp <- tcrossprod(y, x)
+  }
+  class(tmp) <- "Canonical"
+  tmp
 }
 
 #' @rdname kernel
 #' @export
-fnH3 <- function(x, y = NULL, gamma = 0.5){
-	res <- 0
-	if ((ncol(x) > 1) && !is.null(ncol(x))) {
-		if ((ncol(x) != ncol(y)) && !is.null(y)) {
-		  stop("New data is structurally unsimilar.")
-		}
-		for (i in 1:ncol(x)) res <- res + fn.H3a(x = x[, i], y = y[, i], gamma)
-	}
-	else res <- fn.H3a(x, y, gamma)
-	return(res)
+fnH3 <- function(x, y = NULL, gamma = NULL) {
+  if (is.null(gamma)) gamma <- 0.5
+  if (is.vector(x)) x <- matrix(x, ncol = 1)
+  x <- as.matrix(x)
+  n <- nrow(x)
+
+  # fnNorm <- function(x) {
+  #   sum(abs(x) ^ normtype) ^ (normtype * gamma / normtype)
+  # }
+
+  A <- matrix(0, n, n)
+  index.mat <- upper.tri(A)
+  index <- which(index.mat, arr.ind = TRUE)
+  xcrossprod <- tcrossprod(x)
+  tmp1 <- diag(xcrossprod)[index[, 1]]
+  tmp2 <- diag(xcrossprod)[index[, 2]]
+  tmp3 <- xcrossprod[index]
+  A[index.mat] <- tmp1 + tmp2 - 2 * tmp3
+  A <- A + t(A)
+  A <- A ^ gamma
+  rvec <- apply(A, 1, sum)
+  s <- sum(rvec)
+
+  if (is.null(y)) {
+    rvec1 <- tcrossprod(rvec, rep(1, n))
+    tmp <- (A - rvec1 / n - t(rvec1) / n + s / (n ^ 2)) / (-2)
+  }
+  else{
+    if (is.vector(y)) y <- matrix(y, ncol = 1)
+    else y <- as.matrix(y)
+    m <- nrow(y)
+
+    rvec1 <- tcrossprod(rep(1, m), rvec)
+    B <- matrix(0, m, n)
+    indexy <- expand.grid(1:m, 1:n)
+    ynorm <- apply(y, 1, function(x) sum(x ^ 2))
+    xycrossprod <- tcrossprod(y, x)
+    tmp1 <- ynorm[indexy[, 1]]
+    tmp2 <- diag(xcrossprod)[indexy[, 2]]
+    tmp3 <- as.numeric(xycrossprod)
+    B[, ] <- tmp1 + tmp2 - 2 * tmp3
+    B <- B ^ gamma
+    qvec <- apply(B, 1, sum)
+    qvec1 <- tcrossprod(qvec, rep(1, n))
+    tmp <- (B - qvec1 / n - rvec1 / n + s / (n ^ 2)) / (-2)
+  }
+  class(tmp) <- paste("FBM", gamma, sep = ",")
+  tmp
 }

@@ -18,6 +18,12 @@
 #
 ################################################################################
 
+#' @export
+.checkLevels <- function(y) {
+  # Function used for categorical response models. Obtains the levels in the ys
+  list(y = as.numeric(y), levels = levels(y))
+}
+
 triangIndex <- function(k){
   # Function to list row and column index of upper triangular matrix including
   # diagonals.
@@ -28,8 +34,19 @@ triangIndex <- function(k){
   )
 }
 
+#' Test for \code{iprior} objects
+#'
+#' Checks whether an object is an \code{iprior} fitted model (i.e. an
+#' \code{ipriorMod} object), or an object ready for an \code{iprior} fit (i.e.
+#' an \code{ipriorKernel} object).
+#'
+#' @param x An object.
+#'
+#' @export
 is.ipriorMod <- function(x) inherits(x, "ipriorMod")
 
+#' @rdname is.ipriorMod
+#' @export
 is.ipriorKernel <- function(x) inherits(x, "ipriorKernel")
 
 is.ipriorX <- function(x) inherits(x, "ipriorX")
@@ -71,11 +88,24 @@ isPea <- function(x) x == "Pearson"
 
 isFBM <- function(x) grepl("FBM", x)
 
-canPeaFBM <- function(x, kernel, gamma, y) {
+fastSquareRoot2 <- function(x) {
+  tmp <- eigenCpp(x)
+  tmp$vec %*% tcrossprod(diag(sqrt(abs(tmp$val))), tmp$vec)
+}
+
+canPeaFBM <- function(x, kernel, gamma, y, rootkern = FALSE) {
   if (isCan(kernel)) res <- fnH2(x, y)
   if (isPea(kernel)) res <- fnH1(x, y)
   if (isFBM(kernel)) res <- fnH3(x, y, gamma)
-  res
+  if (rootkern) {
+    classres <- paste0("r", class(res))
+    res <- fastSquareRoot2(res)
+    class(res) <- classres
+    res
+  } else {
+    res
+  }
+
 }
 
 whereInt <- function(x) {
@@ -112,8 +142,9 @@ splitHurst <- function(kernel) {
   tmp
 }
 
-hMatList <- function(x, kernel, intr, no.int, gamma, intr.3plus,
-                     xstar = vector("list", p)) {
+#' @export
+.hMatList <- function(x, kernel, intr, no.int, gamma, intr.3plus, rootkern,
+                      xstar = vector("list", p)) {
   # Helper function for creation of list of H matrices. Used in Kernel_loader.r
   # and predict.R
   p <- length(x)
@@ -127,8 +158,8 @@ hMatList <- function(x, kernel, intr, no.int, gamma, intr.3plus,
   # }
 
   suppressWarnings(
-    H <- mapply(canPeaFBM, x = x, kernel = as.list(kernel),
-                gamma = gamma, y = xstar, SIMPLIFY = FALSE)
+    H <- mapply(canPeaFBM, x = x, kernel = as.list(kernel), gamma = gamma,
+                y = xstar, rootkern = rootkern, SIMPLIFY = FALSE)
   )
   if (!is.null(intr)) {
 	  # Add in interactions, if any.
@@ -256,6 +287,13 @@ ipriorColPal <- function(x) {
   colx[x]
 }
 
+#' @rdname ipriorColPal
+#' @export
+ggColPal <- function(x) {
+  hues = seq(15, 375, length = x + 1)
+  grDevices::hcl(h = hues, l = 65, c = 100)[1:x]
+}
+
 # Hacky way to pass R CMD CHECK "no visible binding" note ----------------------
 globalVariables(c("BlockB", "BlockBstuff", "Hl", "Hlam.mat", "Pl", "Psql", "Sl",
                   "V", "Var.Y.inv", "VarY.inv", "W.hat", "Y", "alpha",
@@ -263,4 +301,4 @@ globalVariables(c("BlockB", "BlockBstuff", "Hl", "Hlam.mat", "Pl", "Psql", "Sl",
                   "intr.3plus", "ipriorEM.env", "l", "lambda", "maxit", "model",
                   "n", "nlm", "no.int", "no.int.3plus", "one.lam", "p", "parsm",
                   "psi", "r", "report", "s", "stop.crit", "theta", "u", "w.hat",
-                  "x", "x0", "intercept"))
+                  "x", "x0", "intercept", "probit", "rootkern"))

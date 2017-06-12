@@ -60,7 +60,7 @@
 #'  \code{FALSE} to assign one scale parameter for all kernel matrices.}
 #'  \item{\code{one.lam}}{Logical, defaults to \code{FALSE}. Only relevant when
 #'  using the formula call. Should all the variable share the same scale
-#'  parameter?}}
+#'  parameter?}\item{\code{rootkern}}{Logical, defaults to \code{FALSE}. Setting to \code{TRUE} is equivalent to Gaussian process regression.}}
 #'
 #'  These options are also available, but are only relevant when calling using
 #'  non-formula: \describe{\item{\code{yname}}{Character vector to set the name
@@ -137,13 +137,22 @@ kernL.default <- function(y, ..., model = list()) {
   # Model options and checks ---------------------------------------------------
   mod <- list(kernel = "Canonical", Hurst = NULL, interactions = NULL,
               parsm = TRUE, one.lam = FALSE, yname = NULL, xname = NULL,
-              silent = TRUE, order = as.character(1:p), intr.3plus = NULL,
-              delete = NULL)
+              order = as.character(1:p), intr.3plus = NULL, rootkern = FALSE,
+              probit = FALSE)
   mod_names <- names(mod)
   mod[(model_names <- names(model))] <- model
   if (length(noNms <- model_names[!model_names %in% mod_names])) {
     warning("Unknown names in model options: ", paste(noNms, collapse = ", "),
             call. = FALSE)
+  }
+
+  # This part is for categorical response models -------------------------------
+  y.levels <- NULL
+  if (is.factor(y)) {
+    mod$probit <- TRUE
+    tmp <- .checkLevels(y)  # Utilities.R
+    y <- tmp$y
+    y.levels <- tmp$levels
   }
 
   # What types of kernels? -----------------------------------------------------
@@ -286,7 +295,10 @@ kernL.default <- function(y, ..., model = list()) {
   }
 
   # Set up list of H matrices --------------------------------------------------
-  Hl <- hMatList(x, mod$kernel, mod$intr, no.int, mod$Hurst, mod$intr.3plus)
+  # note: hMatList() is in Utitilities.R
+  Hl <- .hMatList(x = x, kernel = mod$kernel, intr = mod$intr, no.int = no.int,
+                  gamma = mod$Hurst, intr.3plus = mod$intr.3plus,
+                  rootkern = mod$rootkern)
   h <- length(Hl)
   names(Hl) <- mod$xname[1:h]
   if (length(mod$xname) < h && !mod$one.lam && !is.null(mod$intr)) {
@@ -306,53 +318,27 @@ kernL.default <- function(y, ..., model = list()) {
   # Set up names for lambda parameters -----------------------------------------
   mod$lamnamesx <- mod$xname[whereOrd(mod$order)]
 
-  # A delete option, mainly to delete unwanted first order terms but keep ------
-  # interactions ---------------------------------------------------------------
-  if (!is.null(mod$delete)) {
-    Hl <- Hl[-mod$delete]
-    h <- length(Hl)
-    q <- q - length(mod$delete)
-    if (!mod$parsm) {
-      l <- q
-      mod$order <- as.character(1:l)
-    } else {
-      l <- p - r
-    }
-  }
-
-  # Set up progress bar --------------------------------------------------------
-  if (!mod$silent) pb <- txtProgressBar(min = 0, max = 1, style = 3, width = 47)
-  pb.count <- 0
-
   # Block B update function ----------------------------------------------------
   intr <- mod$intr
   environment(indxFn) <- environment()
   H2l <- Hsql <- Pl <- Psql <- Sl <- ind <- ind1 <- ind2 <- NULL
-  BlockB <- function(k) NULL
+  BlockB <- function(k, x = lambda) NULL
   if (r == 0L & no.int.3plus == 0L) {
     # No need to do all the below Block B stuff if higher order terms involved.
     if (q == 1L) {
       Pl <- Hl
       Psql <- list(fastSquare(Pl[[1]]))
       Sl <- list(matrix(0, nrow = n, ncol = n))
-      if (!mod$silent) setTxtProgressBar(pb, 1)
     } else {
       # Next, prepare the indices required for indxFn().
       z <- 1:h
       ind1 <- rep(z, times = (length(z) - 1):0)
       ind2 <- unlist(lapply(2:length(z), function(x) c(NA, z)[-(0:x)]))
-      if (!mod$silent) {
-        pb <- txtProgressBar(min = 0, max = length(c(ind1, z)), style = 3,
-                             width = 47)
-      }
       # Prepare the cross-product terms of squared kernel matrices. This is a
       # list of q_choose_2.
       for (j in 1:length(ind1)) {
-        tmp.H2 <- Hl[[ind1[j]]] %*% Hl[[ind2[j]]]
-          # + Hl[[ind2[j]]] %*% Hl[[ind1[j]]]  # old way. they're symmetric!
-        H2l[[j]] <- tmp.H2 + t(tmp.H2)
-        pb.count <- pb.count + 1
-        if (!mod$silent) setTxtProgressBar(pb, pb.count)
+        H2l.tmp <- Hl[[ind1[j]]] %*% Hl[[ind2[j]]]
+        H2l[[j]] <- H2l.tmp + t(H2l.tmp)
       }
 
       if (!is.null(intr) && mod$parsm) {
@@ -360,30 +346,27 @@ kernL.default <- function(y, ..., model = list()) {
         for (k in z) {
           Hsql[[k]] <- fastSquare(Hl[[k]])
           if (k <= p) ind[[k]] <- indxFn(k)  # only create indices for non-intr
-          pb.count <- pb.count + 1
-          if (!mod$silent) setTxtProgressBar(pb, pb.count)
         }
-        BlockB <- function(k) {
+        BlockB <- function(k, x = lambda) {
           # Calculate Psql instead of directly P %*% P because this way
           # is < O(n^3).
           indB <- ind[[k]]
-          lambda.P <- c(1, lambda[indB$k.int.lam])
+          lambda.P <- c(1, x[indB$k.int.lam])
           Pl[[k]] <<- Reduce("+", mapply("*", Hl[c(k, indB$k.int)], lambda.P,
                                          SIMPLIFY = FALSE))
           Psql[[k]] <<- Reduce("+", mapply("*", Hsql[indB$Psq],
-                                           c(1, lambda[indB$Psq.lam] ^ 2),
+                                           c(1, x[indB$Psq.lam] ^ 2),
                                            SIMPLIFY = FALSE))
           if (!is.null(indB$P2.lam1)) {
-            lambda.P2 <- c(rep(1, sum(indB$P2.lam1 == 0)), lambda[indB$P2.lam1])
-            lambda.P2 <- lambda.P2 * lambda[indB$P2.lam2]
-            Psql[[k]] <<- Psql[[k]] + Reduce("+", mapply("*", H2l[indB$P2],
-                                                         lambda.P2,
-                                                         SIMPLIFY = FALSE))
+            lambda.P2 <- c(rep(1, sum(indB$P2.lam1 == 0)), x[indB$P2.lam1])
+            lambda.P2 <- lambda.P2 * x[indB$P2.lam2]
+            Psql[[k]] <<- Psql[[k]] +
+              Reduce("+", mapply("*", H2l[indB$P2], lambda.P2, SIMPLIFY = FALSE))
           }
-          lambda.PRU <- c(rep(1, sum(indB$PRU.lam1 == 0)), lambda[indB$PRU.lam1])
-          lambda.PRU <- lambda.PRU * lambda[indB$PRU.lam2]
+          lambda.PRU <- c(rep(1, sum(indB$PRU.lam1 == 0)), x[indB$PRU.lam1])
+          lambda.PRU <- lambda.PRU * x[indB$PRU.lam2]
           Sl[[k]] <<- Reduce("+", mapply("*", H2l[indB$PRU], lambda.PRU,
-                                         SIMPLIFY = FALSE))
+                                       SIMPLIFY = FALSE))
         }
       } else {
         # CASE: Multiple lambda with no interactions, or with non-parsimonious -
@@ -391,25 +374,19 @@ kernL.default <- function(y, ..., model = list()) {
         for (k in 1:q) {
           Pl[[k]] <- Hl[[k]]
           Psql[[k]] <- fastSquare(Pl[[k]])
-          pb.count <- pb.count + 1
-          if (!mod$silent) setTxtProgressBar(pb, pb.count)
         }
-        BlockB <- function(k) {
+        BlockB <- function(k, x = lambda) {
           ind <- which(ind1 == k | ind2 == k)
-          Sl[[k]] <<- Reduce("+", mapply("*", H2l[ind], lambda[-k],
-                                         SIMPLIFY = FALSE))
+          Sl[[k]] <<- Reduce("+", mapply("*", H2l[ind], x[-k], SIMPLIFY = FALSE))
         }
       }
     }
   }
 
-  if (!mod$silent) close(pb)
-  mod <- mod[-match("silent", names(mod))]  #remove silent control
-
   BlockBstuff <- list(H2l = H2l, Hsql = Hsql, Pl = Pl, Psql = Psql, Sl = Sl,
                       ind1 = ind1, ind2 = ind2, ind = ind, BlockB = BlockB)
   kernelLoaded <- list(Y = y, x = x, Hl = Hl, n = n, p = p, l = l, r = r,
-                       no.int = no.int, q = q,
+                       no.int = no.int, q = q, y.levels = y.levels,
                        BlockBstuff = BlockBstuff, model = mod, call = cl,
                        no.int.3plus = no.int.3plus)
   class(kernelLoaded) <- "ipriorKernel"
@@ -476,6 +453,7 @@ kernL.formula <- function(formula, data, model = list(), ...) {
   cl <- cl[c(1L, m)]
   kernelLoaded$call <- cl
   names(kernelLoaded$call)[2] <- "formula"
+  kernelLoaded$terms <- tt
   kernelLoaded
 }
 
@@ -490,11 +468,13 @@ print.ipriorKernel <- function(x, ...) {
   # cat(kerneltypes[3], 'RKHS loaded') } if (x$q == 1 | x$model$one.lam) cat(',
   # with a single scale parameter.\n') else cat(', with', x$q, 'scale
   # parameters.\n')
+  if (isTRUE(x$model$probit)) cat("Categorical response variables\n")
   cat("Sample size = ", x$n, "\n")
   cat("Number of x variables, p = ", x$p, "\n")
   cat("Number of scale parameters, l = ", x$l, "\n")
   cat("Number of interactions = ", x$no.int + x$no.int.3plus, "\n")
-  cat("\nInfo on H matrix:\n\n")
+  if (x$model$rootkern) cat("\nInfo on root H matrix:\n\n")
+  else cat("\nInfo on H matrix:\n\n")
   str(x$Hl, ...)
   cat("\n")
 }
