@@ -12,9 +12,9 @@
 
 <meta name="author" content="Haziq Jamil" />
 
-<meta name="date" content="2017-01-10" />
+<meta name="date" content="2017-11-02" />
 
-<title>Manual for the kernel matrix list</title>
+<title>Closed-form EM algorithm matrix manipulations</title>
 
 
 
@@ -68,9 +68,9 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 
 
-<h1 class="title toc-ignore">Manual for the kernel matrix list</h1>
+<h1 class="title toc-ignore">Closed-form EM algorithm matrix manipulations</h1>
 <h4 class="author"><em>Haziq Jamil</em></h4>
-<h4 class="date"><em>2017-01-10</em></h4>
+<h4 class="date"><em>2017-11-02</em></h4>
 
 
 
@@ -181,28 +181,28 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <p><code>h</code> is the length of the kernel matrix. If there are <code>p</code> variables, and <code>m</code> two-way interactions, then <code>h</code> contains the <code>p</code> kernel matrices, and <code>m</code> Hadamard products between the kernel matrices according to the <code>intr</code> indices. Thus <code>h = p + m</code>, regardless of parsimonious or non-parsimonious interactions.</p>
 <p><code>ind1</code> and <code>ind2</code> together give the index of all possible two-way interactions. In a <code>h x h</code> matrix, these are the row (<code>ind1</code>) and column (<code>ind2</code>) indices of the upper triangular matrix excluding the diagonal entries.</p>
 <p>The goal is to efficiently compute a list of length <code>h</code> which contains the <code>H.mat_i ^ 2</code> for <code>i = 1,...,h</code>. Incidentally, we have used <code>q</code> to denote the expanded <code>lambda</code> length which includes interactions and higher order terms, so <code>q=l+m</code>.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">indxFn &lt;-<span class="st"> </span>function(k) {
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">indxFn &lt;-<span class="st"> </span><span class="cf">function</span>(k) {
   <span class="co"># Indexer helper function used to create indices for H2l. Note: intr, ind1 and</span>
   <span class="co"># ind2 are created in kernL().</span>
-  ind.int1 &lt;-<span class="st"> </span>intr[<span class="dv">1</span>, ] ==<span class="st"> </span>k; ind.int2 &lt;-<span class="st"> </span>intr[<span class="dv">2</span>, ] ==<span class="st"> </span>k  <span class="co"># locating var/kernel matrix</span>
-  ind.int &lt;-<span class="st"> </span><span class="kw">which</span>(ind.int1 |<span class="st"> </span>ind.int2)                   <span class="co"># of interactions (out of 1:no.int)</span>
-  k.int &lt;-<span class="st"> </span>ind.int +<span class="st"> </span>p  <span class="co"># which kernel matrix has interactions involving k</span>
+  ind.int1 &lt;-<span class="st"> </span>intr[<span class="dv">1</span>, ] <span class="op">==</span><span class="st"> </span>k; ind.int2 &lt;-<span class="st"> </span>intr[<span class="dv">2</span>, ] <span class="op">==</span><span class="st"> </span>k  <span class="co"># locating var/kernel matrix</span>
+  ind.int &lt;-<span class="st"> </span><span class="kw">which</span>(ind.int1 <span class="op">|</span><span class="st"> </span>ind.int2)                   <span class="co"># of interactions (out of 1:no.int)</span>
+  k.int &lt;-<span class="st"> </span>ind.int <span class="op">+</span><span class="st"> </span>p  <span class="co"># which kernel matrix has interactions involving k</span>
   k.int.lam &lt;-<span class="st"> </span><span class="kw">c</span>(intr[<span class="dv">1</span>, ][ind.int2], intr[<span class="dv">2</span>, ][ind.int1])  <span class="co"># which has </span>
                                                             <span class="co"># interaction with k?</span>
-  nok &lt;-<span class="st"> </span>(<span class="dv">1</span>:p)[-k]  <span class="co"># all variables excluding k</span>
-  k.noint &lt;-<span class="st"> </span><span class="kw">which</span>(!(ind.int1 |<span class="st"> </span>ind.int2)) +<span class="st"> </span>p  <span class="co"># the opposite of k.int</span>
+  nok &lt;-<span class="st"> </span>(<span class="dv">1</span><span class="op">:</span>p)[<span class="op">-</span>k]  <span class="co"># all variables excluding k</span>
+  k.noint &lt;-<span class="st"> </span><span class="kw">which</span>(<span class="op">!</span>(ind.int1 <span class="op">|</span><span class="st"> </span>ind.int2)) <span class="op">+</span><span class="st"> </span>p  <span class="co"># the opposite of k.int</span>
 
   <span class="co"># P.mat %*% R.mat + R.mat %*% P.mat indices ----------------------------------</span>
-  za &lt;-<span class="st"> </span><span class="kw">which</span>((ind1 %in%<span class="st"> </span>k &amp;<span class="st"> </span>ind2 %in%<span class="st"> </span>nok) |<span class="st"> </span>(ind2 %in%<span class="st"> </span>k &amp;<span class="st"> </span>ind1 %in%<span class="st"> </span>nok))
+  za &lt;-<span class="st"> </span><span class="kw">which</span>((ind1 <span class="op">%in%</span><span class="st"> </span>k <span class="op">&amp;</span><span class="st"> </span>ind2 <span class="op">%in%</span><span class="st"> </span>nok) <span class="op">|</span><span class="st"> </span>(ind2 <span class="op">%in%</span><span class="st"> </span>k <span class="op">&amp;</span><span class="st"> </span>ind1 <span class="op">%in%</span><span class="st"> </span>nok))
   grid.PR &lt;-<span class="st"> </span><span class="kw">expand.grid</span>(k.int, nok)
-  zb &lt;-<span class="st"> </span><span class="kw">which</span>((ind1 %in%<span class="st"> </span>grid.PR[,<span class="dv">1</span>] &amp;<span class="st"> </span>ind2 %in%<span class="st"> </span>grid.PR[,<span class="dv">2</span>]) |
-<span class="st">              </span>(ind2 %in%<span class="st"> </span>grid.PR[,<span class="dv">1</span>] &amp;<span class="st"> </span>ind1 %in%<span class="st"> </span>grid.PR[,<span class="dv">2</span>]))
+  zb &lt;-<span class="st"> </span><span class="kw">which</span>((ind1 <span class="op">%in%</span><span class="st"> </span>grid.PR[,<span class="dv">1</span>] <span class="op">&amp;</span><span class="st"> </span>ind2 <span class="op">%in%</span><span class="st"> </span>grid.PR[,<span class="dv">2</span>]) <span class="op">|</span>
+<span class="st">              </span>(ind2 <span class="op">%in%</span><span class="st"> </span>grid.PR[,<span class="dv">1</span>] <span class="op">&amp;</span><span class="st"> </span>ind1 <span class="op">%in%</span><span class="st"> </span>grid.PR[,<span class="dv">2</span>]))
   grid.PR.lam &lt;-<span class="st"> </span><span class="kw">expand.grid</span>(k.int.lam, nok)
 
   <span class="co"># P.mat %*% U.mat + U.mat %*% P.mat indices ----------------------------------</span>
   grid.PU1 &lt;-<span class="st"> </span><span class="kw">expand.grid</span>(k, k.noint)
-  zc &lt;-<span class="st"> </span><span class="kw">which</span>((ind1 %in%<span class="st"> </span>grid.PU1[,<span class="dv">1</span>] &amp;<span class="st"> </span>ind2 %in%<span class="st"> </span>grid.PU1[,<span class="dv">2</span>]) |
-<span class="st">              </span>(ind2 %in%<span class="st"> </span>grid.PU1[,<span class="dv">1</span>] &amp;<span class="st"> </span>ind1 %in%<span class="st"> </span>grid.PU1[,<span class="dv">2</span>]))
+  zc &lt;-<span class="st"> </span><span class="kw">which</span>((ind1 <span class="op">%in%</span><span class="st"> </span>grid.PU1[,<span class="dv">1</span>] <span class="op">&amp;</span><span class="st"> </span>ind2 <span class="op">%in%</span><span class="st"> </span>grid.PU1[,<span class="dv">2</span>]) <span class="op">|</span>
+<span class="st">              </span>(ind2 <span class="op">%in%</span><span class="st"> </span>grid.PU1[,<span class="dv">1</span>] <span class="op">&amp;</span><span class="st"> </span>ind1 <span class="op">%in%</span><span class="st"> </span>grid.PU1[,<span class="dv">2</span>]))
   grid.PU2 &lt;-<span class="st"> </span><span class="kw">expand.grid</span>(k.int, k.noint)
   zd &lt;-<span class="st"> </span><span class="kw">apply</span>(grid.PU2, <span class="dv">1</span>, findH2, <span class="dt">ind1 =</span> ind1, <span class="dt">ind2 =</span> ind2)
   grid.PU.lam &lt;-<span class="st"> </span><span class="kw">expand.grid</span>(k.int.lam, k.noint)
@@ -211,13 +211,13 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
   grid.Psq &lt;-<span class="st"> </span><span class="kw">t</span>(<span class="kw">combn</span>(<span class="kw">c</span>(k, k.int), <span class="dv">2</span>))
   ze &lt;-<span class="st"> </span><span class="kw">apply</span>(grid.Psq, <span class="dv">1</span>, findH2, <span class="dt">ind1 =</span> ind1, <span class="dt">ind2 =</span> ind2 )
   grid.Psq.lam &lt;-<span class="st"> </span><span class="ot">NULL</span>
-  if (<span class="kw">length</span>(k.int.lam) &gt;<span class="st"> </span><span class="dv">0</span>) grid.Psq.lam &lt;-<span class="st"> </span><span class="kw">t</span>(<span class="kw">combn</span>(<span class="kw">c</span>(<span class="dv">0</span>, k.int.lam), <span class="dv">2</span>))
+  <span class="cf">if</span> (<span class="kw">length</span>(k.int.lam) <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span>) grid.Psq.lam &lt;-<span class="st"> </span><span class="kw">t</span>(<span class="kw">combn</span>(<span class="kw">c</span>(<span class="dv">0</span>, k.int.lam), <span class="dv">2</span>))
 
   <span class="kw">list</span>(
     <span class="dt">k.int     =</span> k.int,
     <span class="dt">k.int.lam =</span> k.int.lam,
     <span class="dt">PRU       =</span> <span class="kw">c</span>(za,zc,zb,zd),
-    <span class="dt">PRU.lam1  =</span> <span class="kw">c</span>(<span class="kw">rep</span>(<span class="dv">0</span>, <span class="kw">length</span>(nok) +<span class="st"> </span><span class="kw">length</span>(k.noint)),
+    <span class="dt">PRU.lam1  =</span> <span class="kw">c</span>(<span class="kw">rep</span>(<span class="dv">0</span>, <span class="kw">length</span>(nok) <span class="op">+</span><span class="st"> </span><span class="kw">length</span>(k.noint)),
                   grid.PR.lam[,<span class="dv">1</span>], grid.PU.lam[,<span class="dv">1</span>]),
     <span class="dt">PRU.lam2  =</span> <span class="kw">c</span>(nok, k.noint, grid.PR.lam[,<span class="dv">2</span>], grid.PU.lam[,<span class="dv">2</span>]),
     <span class="dt">Psq       =</span> <span class="kw">c</span>(k, k.int),
@@ -228,17 +228,17 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
     )
 }
 
-findH2 &lt;-<span class="st"> </span>function(z, ind1, ind2){
+findH2 &lt;-<span class="st"> </span><span class="cf">function</span>(z, ind1, ind2){
   <span class="co"># This function finds position of H2 (cross-product terms of H). Used in</span>
   <span class="co"># indxFn()</span>
   x &lt;-<span class="st"> </span>z[<span class="dv">1</span>]; y &lt;-<span class="st"> </span>z[<span class="dv">2</span>]
-  <span class="kw">which</span>((ind1 ==<span class="st"> </span>x &amp;<span class="st"> </span>ind2 ==<span class="st"> </span>y) |<span class="st"> </span>(ind2 ==<span class="st"> </span>x &amp;<span class="st"> </span>ind1 ==<span class="st"> </span>y))
+  <span class="kw">which</span>((ind1 <span class="op">==</span><span class="st"> </span>x <span class="op">&amp;</span><span class="st"> </span>ind2 <span class="op">==</span><span class="st"> </span>y) <span class="op">|</span><span class="st"> </span>(ind2 <span class="op">==</span><span class="st"> </span>x <span class="op">&amp;</span><span class="st"> </span>ind1 <span class="op">==</span><span class="st"> </span>y))
 }</code></pre></div>
 </div>
 <div id="example" class="section level2">
 <h2>Example</h2>
 <p>Regression with 3 covariates and two-way interactions between all 3 covariates. Here, <code>p = 3</code>, <code>l = 3</code> and <code>h = q = 6</code>. In full, the index of the <code>H.mat</code> is <code>c(1, 2, 3, 1:2, 1:3, 2:3)</code>.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(mod &lt;-<span class="st"> </span><span class="kw">kernL</span>(stack.loss ~<span class="st"> </span>. ^<span class="st"> </span><span class="dv">2</span>, <span class="dt">data =</span> stackloss))
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(mod &lt;-<span class="st"> </span><span class="kw">.kernL</span>(stack.loss <span class="op">~</span><span class="st"> </span>. <span class="op">^</span><span class="st"> </span><span class="dv">2</span>, <span class="dt">data =</span> stackloss))
 ## 
 ## Sample size =  21 
 ## Number of x variables, p =  3 
@@ -248,52 +248,58 @@ findH2 &lt;-<span class="st"> </span>function(z, ind1, ind2){
 ## Info on H matrix:
 ## 
 ## List of 6
-##  $ Air.Flow             : Canonical [1:21, 1:21] 383 383 285.2 30.8 30.8 ...
-##  $ Water.Temp           : Canonical [1:21, 1:21] 34.87 34.87 23.06 17.15 5.34 ...
-##  $ Acid.Conc.           : Canonical [1:21, 1:21] 7.37 4.65 10.08 1.94 1.94 ...
-##  $ Air.Flow:Water.Temp  : Canonical x Canonical [1:21, 1:21] 13355 13355 6575 528 164 ...
-##  $ Air.Flow:Acid.Conc.  : Canonical x Canonical [1:21, 1:21] 2822 1782.3 2875.1 59.6 59.6 ...
-##  $ Water.Temp:Acid.Conc.: Canonical x Canonical [1:21, 1:21] 256.9 162.2 232.4 33.3 10.4 ...
+##  $ Air.Flow             : num [1:21, 1:21] 383 383 285.2 30.8 30.8 ...
+##   ..- attr(*, &quot;kernel&quot;)= chr &quot;linear&quot;
+##  $ Water.Temp           : num [1:21, 1:21] 34.87 34.87 23.06 17.15 5.34 ...
+##   ..- attr(*, &quot;kernel&quot;)= chr &quot;linear&quot;
+##  $ Acid.Conc.           : num [1:21, 1:21] 7.37 4.65 10.08 1.94 1.94 ...
+##   ..- attr(*, &quot;kernel&quot;)= chr &quot;linear&quot;
+##  $ Air.Flow:Water.Temp  : matrix x matrix [1:21, 1:21] 13355 13355 6575 528 164 ...
+##   ..- attr(*, &quot;kernel&quot;)= chr &quot;linear&quot;
+##  $ Air.Flow:Acid.Conc.  : matrix x matrix [1:21, 1:21] 2822 1782.3 2875.1 59.6 59.6 ...
+##   ..- attr(*, &quot;kernel&quot;)= chr &quot;linear&quot;
+##  $ Water.Temp:Acid.Conc.: matrix x matrix [1:21, 1:21] 256.9 162.2 232.4 33.3 10.4 ...
+##   ..- attr(*, &quot;kernel&quot;)= chr &quot;linear&quot;
 p &lt;-<span class="st"> </span><span class="dv">3</span></code></pre></div>
 <p>The index of all two-way interactions are obtained by the kernel loader function. It is contained in <code>model$intr</code>. The following shows the indices of the variables which have two-way interactions. For example, variable 1 interacts with variable 2, variable 1 with 3 and finally 2 with 3. This matrix will always have 2 rows, and columns equal to <code>m</code>.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">intr &lt;-<span class="st"> </span>mod$model$intr
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">intr &lt;-<span class="st"> </span>mod<span class="op">$</span>model<span class="op">$</span>intr
 <span class="kw">colnames</span>(intr) &lt;-<span class="st"> </span><span class="ot">NULL</span>
 intr
 ##      [,1] [,2] [,3]
 ## [1,]    1    1    2
 ## [2,]    2    3    3</code></pre></div>
 <p>Next, we list out the indices of all possible two-way terms. This is used to compute the cross-product when multilpying out the square of a sum of matrices.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">h &lt;-<span class="st"> </span><span class="kw">length</span>(mod$Hl)
-z &lt;-<span class="st"> </span><span class="dv">1</span>:h
-(ind1 &lt;-<span class="st"> </span><span class="kw">rep</span>(z, <span class="dt">times =</span> (<span class="kw">length</span>(z) -<span class="st"> </span><span class="dv">1</span>):<span class="dv">0</span>))
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">h &lt;-<span class="st"> </span><span class="kw">length</span>(mod<span class="op">$</span>Hl)
+z &lt;-<span class="st"> </span><span class="dv">1</span><span class="op">:</span>h
+(ind1 &lt;-<span class="st"> </span><span class="kw">rep</span>(z, <span class="dt">times =</span> (<span class="kw">length</span>(z) <span class="op">-</span><span class="st"> </span><span class="dv">1</span>)<span class="op">:</span><span class="dv">0</span>))
 ##  [1] 1 1 1 1 1 2 2 2 2 3 3 3 4 4 5
-(ind2 &lt;-<span class="st"> </span><span class="kw">unlist</span>(<span class="kw">lapply</span>(<span class="dv">2</span>:<span class="kw">length</span>(z), function(x) <span class="kw">c</span>(<span class="ot">NA</span>, z)[-(<span class="dv">0</span>:x)])))
+(ind2 &lt;-<span class="st"> </span><span class="kw">unlist</span>(<span class="kw">lapply</span>(<span class="dv">2</span><span class="op">:</span><span class="kw">length</span>(z), <span class="cf">function</span>(x) <span class="kw">c</span>(<span class="ot">NA</span>, z)[<span class="op">-</span>(<span class="dv">0</span><span class="op">:</span>x)])))
 ##  [1] 2 3 4 5 6 3 4 5 6 4 5 6 5 6 6</code></pre></div>
 <div id="indexing-the-kernel-matrrix-list-hl" class="section level3">
 <h3>Indexing the kernel matrrix list <code>Hl</code></h3>
 <p>All of the above would be performed in <code>kernL()</code> so <code>ind1</code> and <code>ind2</code> would be available in environment. We now enter the <code>indxFn()</code> function. Set <code>k = 1</code>. First find the index for which variable <code>k</code> has interactions (in relation to the positioning in <code>intr</code>). Variable 1 appears in columns 1 and 2 of <code>intr</code>.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">k &lt;-<span class="st"> </span><span class="dv">1</span>
-ind.int1 &lt;-<span class="st"> </span>intr[<span class="dv">1</span>, ] ==<span class="st"> </span>k; ind.int2 &lt;-<span class="st"> </span>intr[<span class="dv">2</span>, ] ==<span class="st"> </span>k
-(ind.int &lt;-<span class="st"> </span><span class="kw">which</span>(ind.int1 |<span class="st"> </span>ind.int2))
+ind.int1 &lt;-<span class="st"> </span>intr[<span class="dv">1</span>, ] <span class="op">==</span><span class="st"> </span>k; ind.int2 &lt;-<span class="st"> </span>intr[<span class="dv">2</span>, ] <span class="op">==</span><span class="st"> </span>k
+(ind.int &lt;-<span class="st"> </span><span class="kw">which</span>(ind.int1 <span class="op">|</span><span class="st"> </span>ind.int2))
 ## [1] 1 2</code></pre></div>
 <p>Which of the Hadamard products (i.e. <code>intr</code>) involve variable <code>k</code>, and where are the relevant Hadamard products in relation to the full index? The reason for the formula below is that the Hadamard products are calculated in the same order that appears in <code>intr</code>, and we add <code>p</code> because the first <code>p</code> elements are the <code>p</code> kernel matrices.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(k.int &lt;-<span class="st"> </span>ind.int +<span class="st"> </span>p)
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(k.int &lt;-<span class="st"> </span>ind.int <span class="op">+</span><span class="st"> </span>p)
 ## [1] 4 5</code></pre></div>
 <p>Which variables have interaction with variable <code>k</code>? When I wrote this, I was thinking which of the <span class="math inline">\(\lambda_j\)</span> need to be multipled by <span class="math inline">\(\lambda_k\)</span>, <span class="math inline">\(j \neq k\)</span>? In other words, what are the other half of the pair of variable <code>k</code> in the matrix <code>intr</code>?</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(k.int.lam &lt;-<span class="st"> </span><span class="kw">c</span>(intr[<span class="dv">1</span>, ][ind.int2], intr[<span class="dv">2</span>, ][ind.int1]))
 ## [1] 2 3</code></pre></div>
 <p>Next I simply call <code>nok</code> the indices of all variables excluding <code>k</code>. <em>sidenote: I am beginning to think that <code>k.int.lam == nok</code></em>.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(nok &lt;-<span class="st"> </span>(<span class="dv">1</span>:p)[-k])
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(nok &lt;-<span class="st"> </span>(<span class="dv">1</span><span class="op">:</span>p)[<span class="op">-</span>k])
 ## [1] 2 3</code></pre></div>
 <p>Finally, these are the indices of the Hadamard products which do not involve variable <code>k</code>.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(k.noint &lt;-<span class="st"> </span><span class="kw">which</span>(!(ind.int1 |<span class="st"> </span>ind.int2)) +<span class="st"> </span>p)
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(k.noint &lt;-<span class="st"> </span><span class="kw">which</span>(<span class="op">!</span>(ind.int1 <span class="op">|</span><span class="st"> </span>ind.int2)) <span class="op">+</span><span class="st"> </span>p)
 ## [1] 6</code></pre></div>
 </div>
 <div id="indices-for-mathbf-p_k-mathbf-r_k-mathbf-p_k-mathbf-r_ktop" class="section level3">
 <h3>Indices for <span class="math inline">\(\mathbf P_k \mathbf R_k + (\mathbf P_k \mathbf R_k)^\top\)</span></h3>
 <p>We have a list called <code>H2l</code> which contains all possible two-way terms <code>Hi %*% Hj + Hj %*% Hi</code>, <code>i,j = 1,...,h</code> which arises as a result of squaring <code>H = H1 + ... + Hh</code>. It is efficient to calculate these two-way terms once at the beginning and then recall them as needed. For our example, the entries of this list consist of</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ind &lt;-<span class="st"> </span><span class="kw">paste</span>(ind1, ind2, <span class="dt">sep =</span> <span class="st">&quot;x&quot;</span>)
-<span class="kw">names</span>(ind) &lt;-<span class="st"> </span><span class="kw">as.character</span>(<span class="dv">1</span>:<span class="kw">length</span>(ind))
+<span class="kw">names</span>(ind) &lt;-<span class="st"> </span><span class="kw">as.character</span>(<span class="dv">1</span><span class="op">:</span><span class="kw">length</span>(ind))
 ind
 ##     1     2     3     4     5     6     7     8     9    10    11    12 
 ## &quot;1x2&quot; &quot;1x3&quot; &quot;1x4&quot; &quot;1x5&quot; &quot;1x6&quot; &quot;2x3&quot; &quot;2x4&quot; &quot;2x5&quot; &quot;2x6&quot; &quot;3x4&quot; &quot;3x5&quot; &quot;3x6&quot; 
@@ -316,7 +322,7 @@ ind
 \end{align}
 \]</span></p>
 <p>For now, ignore the scale parameters in the formulae above, and just concentrate on the kernel matrices. For the first part of <span class="math inline">\(\mathbf P_k \mathbf R_k\)</span>, we require the matrix product indices where variables <span class="math inline">\(k\)</span> is multiplied with all other variables except itself. We call this <code>za</code>.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(za &lt;-<span class="st"> </span><span class="kw">which</span>((ind1 %in%<span class="st"> </span>k &amp;<span class="st"> </span>ind2 %in%<span class="st"> </span>nok) |<span class="st"> </span>(ind2 %in%<span class="st"> </span>k &amp;<span class="st"> </span>ind1 %in%<span class="st"> </span>nok)))
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(za &lt;-<span class="st"> </span><span class="kw">which</span>((ind1 <span class="op">%in%</span><span class="st"> </span>k <span class="op">&amp;</span><span class="st"> </span>ind2 <span class="op">%in%</span><span class="st"> </span>nok) <span class="op">|</span><span class="st"> </span>(ind2 <span class="op">%in%</span><span class="st"> </span>k <span class="op">&amp;</span><span class="st"> </span>ind1 <span class="op">%in%</span><span class="st"> </span>nok)))
 ## [1] 1 2
 
 <span class="co"># Check</span>
@@ -330,8 +336,8 @@ ind[za]
 ## 2    5    2
 ## 3    4    3
 ## 4    5    3
-(zb &lt;-<span class="st"> </span><span class="kw">which</span>((ind1 %in%<span class="st"> </span>grid.PR[,<span class="dv">1</span>] &amp;<span class="st"> </span>ind2 %in%<span class="st"> </span>grid.PR[,<span class="dv">2</span>]) |
-<span class="st">            </span>(ind2 %in%<span class="st"> </span>grid.PR[,<span class="dv">1</span>] &amp;<span class="st"> </span>ind1 %in%<span class="st"> </span>grid.PR[,<span class="dv">2</span>])
+(zb &lt;-<span class="st"> </span><span class="kw">which</span>((ind1 <span class="op">%in%</span><span class="st"> </span>grid.PR[,<span class="dv">1</span>] <span class="op">&amp;</span><span class="st"> </span>ind2 <span class="op">%in%</span><span class="st"> </span>grid.PR[,<span class="dv">2</span>]) <span class="op">|</span>
+<span class="st">            </span>(ind2 <span class="op">%in%</span><span class="st"> </span>grid.PR[,<span class="dv">1</span>] <span class="op">&amp;</span><span class="st"> </span>ind1 <span class="op">%in%</span><span class="st"> </span>grid.PR[,<span class="dv">2</span>])
 ))
 ## [1]  7  8 10 11</code></pre></div>
 <p>Finally, what’s left is to take care of the scale parameters. Our scale parameters are contained in the vector of length <code>q=6</code> called <code>lambda</code>. For the first part, that is simply the index <code>nok</code>. For the second part, we need to find the indices using <code>expand.grid()</code> again, but this time using the indices <code>k.int.lam</code> and <code>nok</code>. <code>k.int.lam</code> would give us the indices of the scale parameters which have interactions with <code>k</code>.</p>
@@ -344,7 +350,7 @@ ind[za]
 ## 3    2    3
 ## 4    3    3</code></pre></div>
 <p>The required product <span class="math inline">\(\mathbf P_k \mathbf R_k\)</span> is then, in a manner of speaking,</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">sum</span>(lambda[PR.lam index] *<span class="st"> </span>H2l[PR index])</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">sum</span>(lambda[PR.lam index] <span class="op">*</span><span class="st"> </span>H2l[PR index])</code></pre></div>
 </div>
 <div id="indices-for-mathbf-p_k-mathbf-u_k-mathbf-p_k-mathbf-u_ktop" class="section level3">
 <h3>Indices for <span class="math inline">\(\mathbf P_k \mathbf U_k +(\mathbf P_k \mathbf U_k)^\top\)</span></h3>
@@ -360,8 +366,8 @@ ind[za]
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(grid.PU1 &lt;-<span class="st"> </span><span class="kw">expand.grid</span>(k, k.noint))
 ##   Var1 Var2
 ## 1    1    6
-(zc &lt;-<span class="st"> </span><span class="kw">which</span>((ind1 %in%<span class="st"> </span>grid.PU1[,<span class="dv">1</span>] &amp;<span class="st"> </span>ind2 %in%<span class="st"> </span>grid.PU1[,<span class="dv">2</span>]) |
-<span class="st">             </span>(ind2 %in%<span class="st"> </span>grid.PU1[,<span class="dv">1</span>] &amp;<span class="st"> </span>ind1 %in%<span class="st"> </span>grid.PU1[,<span class="dv">2</span>])))
+(zc &lt;-<span class="st"> </span><span class="kw">which</span>((ind1 <span class="op">%in%</span><span class="st"> </span>grid.PU1[,<span class="dv">1</span>] <span class="op">&amp;</span><span class="st"> </span>ind2 <span class="op">%in%</span><span class="st"> </span>grid.PU1[,<span class="dv">2</span>]) <span class="op">|</span>
+<span class="st">             </span>(ind2 <span class="op">%in%</span><span class="st"> </span>grid.PU1[,<span class="dv">1</span>] <span class="op">&amp;</span><span class="st"> </span>ind1 <span class="op">%in%</span><span class="st"> </span>grid.PU1[,<span class="dv">2</span>])))
 ## [1] 5
 
 <span class="co"># Check</span>
@@ -376,8 +382,8 @@ ind.tmp[zc]
 ##   Var1 Var2
 ## 1    4    6
 ## 2    5    6
-(zd &lt;-<span class="st"> </span><span class="kw">which</span>((ind1 %in%<span class="st"> </span>grid.PU2[,<span class="dv">1</span>] &amp;<span class="st"> </span>ind2 %in%<span class="st"> </span>grid.PU2[,<span class="dv">2</span>]) |
-<span class="st">             </span>(ind2 %in%<span class="st"> </span>grid.PU2[,<span class="dv">1</span>] &amp;<span class="st"> </span>ind1 %in%<span class="st"> </span>grid.PU2[,<span class="dv">2</span>])))
+(zd &lt;-<span class="st"> </span><span class="kw">which</span>((ind1 <span class="op">%in%</span><span class="st"> </span>grid.PU2[,<span class="dv">1</span>] <span class="op">&amp;</span><span class="st"> </span>ind2 <span class="op">%in%</span><span class="st"> </span>grid.PU2[,<span class="dv">2</span>]) <span class="op">|</span>
+<span class="st">             </span>(ind2 <span class="op">%in%</span><span class="st"> </span>grid.PU2[,<span class="dv">1</span>] <span class="op">&amp;</span><span class="st"> </span>ind1 <span class="op">%in%</span><span class="st"> </span>grid.PU2[,<span class="dv">2</span>])))
 ## [1] 14 15
 
 <span class="co"># Check</span>
@@ -403,16 +409,16 @@ ind.tmp[zd]
 \]</span></p>
 <p>As <span class="math inline">\(\mathbf P_k\mathbf R_k\)</span> and <span class="math inline">\(\mathbf P_k\mathbf U_k\)</span> are made up linearly of two-way matrix products of the kernel matrices which are stored in <code>H2l</code>, all we need is to add the right entries of <code>H2l</code> together (and not forgetting the respective scale parameters). The indices are given by the function <code>indxFn()</code>.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">indB &lt;-<span class="st"> </span><span class="kw">indxFn</span>(<span class="dv">1</span>)
-indB$PRU  <span class="co"># = c(za, zc, zb, zd) i.e. index of Hl to sum together</span>
+indB<span class="op">$</span>PRU  <span class="co"># = c(za, zc, zb, zd) i.e. index of Hl to sum together</span>
 ## [1]  1  2  5  7  8 10 11 14 15
-<span class="kw">rbind</span>(indB$PRU.lam1, indB$PRU.lam2)  <span class="co"># index of the lambdas to cross-product with Hl</span>
+<span class="kw">rbind</span>(indB<span class="op">$</span>PRU.lam1, indB<span class="op">$</span>PRU.lam2)  <span class="co"># index of the lambdas to cross-product with Hl</span>
 ##      [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8] [,9]
 ## [1,]    0    0    0    2    3    2    3    2    3
 ## [2,]    2    3    6    2    2    3    3    6    6</code></pre></div>
 <p>For <code>k=1</code>, we calculate <span class="math inline">\(\mathbf S_1\)</span> as</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">lambda.PRU &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="kw">rep</span>(<span class="dv">1</span>, <span class="kw">sum</span>(indB$PRU.lam1 ==<span class="st"> </span><span class="dv">0</span>)), lambda[indB$PRU.lam1])
-lambda.PRU &lt;-<span class="st"> </span>lambda.PRU *<span class="st"> </span>lambda[indB$PRU.lam2]
-S &lt;-<span class="st"> </span><span class="kw">Reduce</span>(<span class="st">&quot;+&quot;</span>, <span class="kw">mapply</span>(<span class="st">&quot;*&quot;</span>, H2l[indB$PRU], lambda.PRU, <span class="dt">SIMPLIFY =</span> <span class="ot">FALSE</span>))</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">lambda.PRU &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="kw">rep</span>(<span class="dv">1</span>, <span class="kw">sum</span>(indB<span class="op">$</span>PRU.lam1 <span class="op">==</span><span class="st"> </span><span class="dv">0</span>)), lambda[indB<span class="op">$</span>PRU.lam1])
+lambda.PRU &lt;-<span class="st"> </span>lambda.PRU <span class="op">*</span><span class="st"> </span>lambda[indB<span class="op">$</span>PRU.lam2]
+S &lt;-<span class="st"> </span><span class="kw">Reduce</span>(<span class="st">&quot;+&quot;</span>, <span class="kw">mapply</span>(<span class="st">&quot;*&quot;</span>, H2l[indB<span class="op">$</span>PRU], lambda.PRU, <span class="dt">SIMPLIFY =</span> <span class="ot">FALSE</span>))</code></pre></div>
 <p>This is an efficient way to calculate <span class="math inline">\(\mathbf S_k\)</span> by simply recalling the already multiplied matrices. In the EM algorithm, we would need to repeat this calculation for each <code>k=1,...,l</code> and also for each EM step <code>t=1,2,...</code>.</p>
 <p>Note that <span class="math inline">\(\mathbf S_k\)</span> is calculated this way only if there are parsimonious interactions. When only a single scale paramters is used (e.g. using <code>one.lam = TRUE</code>), then <span class="math inline">\(\mathbf S_k = 0\)</span>. When no interactions are present, then <span class="math inline">\(\mathbf U_k = 0\)</span>, and we only need <span class="math inline">\(\mathbf P_k \mathbf R_k + (\mathbf P_k \mathbf R_k)^\top\)</span>. But this becomes easier because <span class="math inline">\(\mathbf P_k = \mathbf H_k\)</span> as there are no Hadamard interactions.</p>
 <p>Also realise that we never calculate <span class="math inline">\(\mathbf R_k\)</span> and <span class="math inline">\(\mathbf U_k\)</span> explicitly, because only <span class="math inline">\(\mathbf S_k\)</span> is required in the closed form expression of <span class="math inline">\(\lambda_k^{(t+1)}\)</span>.</p>
@@ -439,8 +445,8 @@ S &lt;-<span class="st"> </span><span class="kw">Reduce</span>(<span class="st">
 ## [1,]    1    4
 ## [2,]    1    5
 ## [3,]    4    5
-(ze &lt;-<span class="st"> </span><span class="kw">which</span>((ind1 %in%<span class="st"> </span>grid.Psq[,<span class="dv">1</span>] &amp;<span class="st"> </span>ind2 %in%<span class="st"> </span>grid.Psq[,<span class="dv">2</span>]) |
-<span class="st">             </span>(ind2 %in%<span class="st"> </span>grid.Psq[,<span class="dv">1</span>] &amp;<span class="st"> </span>ind1 %in%<span class="st"> </span>grid.Psq[,<span class="dv">2</span>])))
+(ze &lt;-<span class="st"> </span><span class="kw">which</span>((ind1 <span class="op">%in%</span><span class="st"> </span>grid.Psq[,<span class="dv">1</span>] <span class="op">&amp;</span><span class="st"> </span>ind2 <span class="op">%in%</span><span class="st"> </span>grid.Psq[,<span class="dv">2</span>]) <span class="op">|</span>
+<span class="st">             </span>(ind2 <span class="op">%in%</span><span class="st"> </span>grid.Psq[,<span class="dv">1</span>] <span class="op">&amp;</span><span class="st"> </span>ind1 <span class="op">%in%</span><span class="st"> </span>grid.Psq[,<span class="dv">2</span>])))
 ## [1]  3  4 13
 
 <span class="co"># Check</span>
@@ -452,7 +458,7 @@ ind.tmp[ze]
 ##   &quot;1x1:2&quot;   &quot;1x1:3&quot; &quot;1:2x1:3&quot;
 
 grid.Psq.lam &lt;-<span class="st"> </span><span class="ot">NULL</span>
-if (<span class="kw">length</span>(k.int.lam) &gt;<span class="st"> </span><span class="dv">0</span>) grid.Psq.lam &lt;-<span class="st"> </span><span class="kw">t</span>(<span class="kw">combn</span>(<span class="kw">c</span>(<span class="dv">0</span>, k.int.lam), <span class="dv">2</span>))
+<span class="cf">if</span> (<span class="kw">length</span>(k.int.lam) <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span>) grid.Psq.lam &lt;-<span class="st"> </span><span class="kw">t</span>(<span class="kw">combn</span>(<span class="kw">c</span>(<span class="dv">0</span>, k.int.lam), <span class="dv">2</span>))
 grid.Psq.lam
 ##      [,1] [,2]
 ## [1,]    0    2
@@ -460,14 +466,14 @@ grid.Psq.lam
 ## [3,]    2    3</code></pre></div>
 <p>The code, which is found in the function for <code>kernL()</code>, is given by</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># First part of sum</span>
-Psql[[k]] &lt;&lt;-<span class="st"> </span><span class="kw">Reduce</span>(<span class="st">&quot;+&quot;</span>, <span class="kw">mapply</span>(<span class="st">&quot;*&quot;</span>, Hsql[indB$Psq],
-                                 <span class="kw">c</span>(<span class="dv">1</span>, lambda[indB$Psq.lam] ^<span class="st"> </span><span class="dv">2</span>),
+Psql[[k]] &lt;&lt;-<span class="st"> </span><span class="kw">Reduce</span>(<span class="st">&quot;+&quot;</span>, <span class="kw">mapply</span>(<span class="st">&quot;*&quot;</span>, Hsql[indB<span class="op">$</span>Psq],
+                                 <span class="kw">c</span>(<span class="dv">1</span>, lambda[indB<span class="op">$</span>Psq.lam] <span class="op">^</span><span class="st"> </span><span class="dv">2</span>),
                                  <span class="dt">SIMPLIFY =</span> <span class="ot">FALSE</span>))
 
 <span class="co"># Second part of sum</span>
-lambda.P2 &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="kw">rep</span>(<span class="dv">1</span>, <span class="kw">sum</span>(indB$P2.lam1 ==<span class="st"> </span><span class="dv">0</span>)), lambda[indB$P2.lam1])
-lambda.P2 &lt;-<span class="st"> </span>lambda.P2 *<span class="st"> </span>lambda[indB$P2.lam2]
-Psql[[k]] &lt;&lt;-<span class="st"> </span>Psql[[k]] +<span class="st"> </span><span class="kw">Reduce</span>(<span class="st">&quot;+&quot;</span>, <span class="kw">mapply</span>(<span class="st">&quot;*&quot;</span>, H2l[indB$P2],
+lambda.P2 &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="kw">rep</span>(<span class="dv">1</span>, <span class="kw">sum</span>(indB<span class="op">$</span>P2.lam1 <span class="op">==</span><span class="st"> </span><span class="dv">0</span>)), lambda[indB<span class="op">$</span>P2.lam1])
+lambda.P2 &lt;-<span class="st"> </span>lambda.P2 <span class="op">*</span><span class="st"> </span>lambda[indB<span class="op">$</span>P2.lam2]
+Psql[[k]] &lt;&lt;-<span class="st"> </span>Psql[[k]] <span class="op">+</span><span class="st"> </span><span class="kw">Reduce</span>(<span class="st">&quot;+&quot;</span>, <span class="kw">mapply</span>(<span class="st">&quot;*&quot;</span>, H2l[indB<span class="op">$</span>P2],
                                              lambda.P2,
                                              <span class="dt">SIMPLIFY =</span> <span class="ot">FALSE</span>))</code></pre></div>
 <p>Note that in cases where there are no interactions (or with non-parsimonious interactions), then <span class="math inline">\(\mathbf P_k^2 = \mathbf H_k^2\)</span> and does not depend on <span class="math inline">\(\lambda_k\)</span>, thus can be calculated once and stored.</p>

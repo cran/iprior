@@ -3,11 +3,18 @@
 #' @importFrom Rcpp evalCpp
 #'
 # iprior package imports -------------------------------------------------------
-#' @importFrom grDevices dev.new hcl
-#' @importFrom graphics abline lines par plot text
-#' @importFrom methods is
-#' @importFrom stats logLik optim coef delete.response kernel lm model.frame
-#'   model.response pnorm printCoefmat qqnorm rnorm terms optimHess nlm
-#' @importFrom utils combn setTxtProgressBar str txtProgressBar
-#' @import RColorBrewer
+#' @importFrom stats coef delete.response dnorm fitted logLik model.extract
+#'   model.frame model.response na.action na.omit optim optimHess pnorm predict
+#'   printCoefmat qnorm resid residuals rnorm rt terms
+#' @importFrom utils capture.output combn object.size setTxtProgressBar str
+#'   txtProgressBar
+#' @import ggplot2
 NULL
+
+# Hacky way to pass R CMD CHECK "no visible binding",note ----------------------
+globalVariables(c("BlockBStuff", "estl", "ind1", "ind2", "intr", "intr.3plus",
+                  "ipriorEM.env", "Iteration", "kernels", "lambda", "loglik",
+                  "lower", "m", "maxit", "mod", "n", "niter", "no.int",
+                  "no.int.3plus", "p", "parsm", "Pl", "probit", "psi", "Psql",
+                  "Sl","stop.crit", "u", "upper", "V", "value", "Var1", "Var2",
+                  "variable", "Vy.inv.y", "X", "y"))

@@ -1,0 +1,65 @@
+---
+title: "iprior2"
+output: pdf_document
+---
+
+```{r, include = FALSE}
+devtools::load_all()
+```
+
+A test of `iprior2` which does direct maximisation of the marginal log-likelihood to obtain hyperparameter estimates for Hurst coefficients of fBm kernels, lengthscale of squared exponential kernels, and the offset value for polynomial kernels.
+
+First generate the toy data set with 150 samples.
+
+```{r}
+dat <- gen_fbm(n = 150)
+head(dat)
+```
+
+# Fractional Brownian motion kernel
+
+The Hurst coefficient can be fixed to a specific value by providing it as an option, e.g. `kernel = "fbm,0.7"` for Hurst = 0.7. By default, 0.5 is used. Further, the Hurst coefficient can be estimated as well by providing `est.hurst = TRUE`.
+
+```{r}
+mod <- iprior2(y ~ X, dat, kernel = "fbm", est.hurst = TRUE)
+summary(mod)
+plot_fitted2(mod)
+```
+
+# Squared exponential kernel
+
+The SE kernel takes the lengthscale parameter $l$, which can either be fixed or estimated. The default is $l=1$, but different values are specified via `kernel = "se,0.5"`, for example. It is not estimated by default, but to estimate it use `est.lengthscale = TRUE`.
+
+```{r}
+mod <- iprior2(y ~ X, dat, kernel = "se", est.lengthscale = TRUE)
+summary(mod)
+plot_fitted2(mod)
+```
+
+# Polynomial kernel
+
+The polynomial of degree $d$ is specified using `kernel = "polyd"`, e.g. `poly2`, `poly3`, etc. The other parameter for this kernel is the offset $c$, which can also be specified after a comma like the above kernels. The degree is never estimated (doesn't make sense to) so must be specified. The smallest $d$ is 2, because $d=1$ is just the linear kernel. The offset can either be estimated or fixed.
+
+## Polynomial degree 2
+
+```{r}
+mod <- iprior2(y ~ X, dat, kernel = "poly2", est.offset = TRUE)
+summary(mod)
+plot_fitted2(mod)
+```
+
+## Polynomial degree 3
+
+```{r}
+mod <- iprior2(y ~ X, dat, kernel = "poly3", est.offset = TRUE)
+summary(mod)
+plot_fitted2(mod)
+```
+
+## Polynomial degree 4
+
+```{r}
+mod <- iprior2(y ~ X, dat, kernel = "poly4", est.offset = TRUE)
+summary(mod)
+plot_fitted2(mod)
+```
