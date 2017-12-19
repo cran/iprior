@@ -15,12 +15,13 @@
 \alias{get_se}
 \alias{get_kernels}
 \alias{get_kern_matrix}
-\alias{get_mse}
+\alias{get_prederror}
 \alias{get_estl}
 \alias{get_method}
 \alias{get_convergence}
 \alias{get_niter}
 \alias{get_time}
+\alias{get_theta}
 \title{Accessor functions for \code{ipriorMod} objects.}
 \usage{
 get_intercept(object)
@@ -49,7 +50,7 @@ get_kernels(object)
 
 get_kern_matrix(object, theta = NULL, xstar = list(NULL))
 
-get_mse(object)
+get_prederror(object, error.type = c("RMSE", "MSE"))
 
 get_estl(object)
 
@@ -60,6 +61,8 @@ get_convergence(object)
 get_niter(object)
 
 get_time(object)
+
+get_theta(object)
 }
 \arguments{
 \item{object}{An \code{ipriorMod} object.}
@@ -75,6 +78,10 @@ matrix.}
 matrix is returned using the data as input points. Otherwise, the kernel
 matrix is evaluated with respect to this set of data as well. It must be a
 list of vectors/matrices with similar dimensions to the original data.}
+
+\item{error.type}{(Optional) Report the mean squared error of prediction
+(\code{"MSE"}), or the root mean squared error of prediction
+(\code{"RMSE"})}
 }
 \description{
 Accessor functions for \code{ipriorMod} objects.
@@ -107,7 +114,7 @@ Accessor functions for \code{ipriorMod} objects.
 
 \item \code{get_kern_matrix}: Obtain the kernel matrix of the I-prior model.
 
-\item \code{get_mse}: Obtain the training mean squared error.
+\item \code{get_prederror}: Obtain the training mean squared error.
 
 \item \code{get_estl}: Obtain information on which hyperparameters were
 estimated and which were fixed.
@@ -120,5 +127,8 @@ estimated and which were fixed.
 
 \item \code{get_time}: Obtain the time taken to complete the estimation
 procedure.
+
+\item \code{get_theta}: Extract the theta value at convergence. Note that this
+is on an unrestricted scale (see the vignette for details).
 }}
 

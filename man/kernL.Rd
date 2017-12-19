@@ -8,12 +8,13 @@
 kernL(y, ..., kernel = "linear", interactions = NULL, est.lambda = TRUE,
   est.hurst = FALSE, est.lengthscale = FALSE, est.offset = FALSE,
   est.psi = TRUE, fixed.hyp = NULL, lambda = 1, psi = 1,
-  nystrom = FALSE, nys.seed = NULL, model = list())
+  nystrom = FALSE, nys.seed = NULL, model = list(), train.samp, test.samp)
 
 \method{kernL}{formula}(formula, data, kernel = "linear", one.lam = FALSE,
   est.lambda = TRUE, est.hurst = FALSE, est.lengthscale = FALSE,
   est.offset = FALSE, est.psi = TRUE, fixed.hyp = NULL, lambda = 1,
-  psi = 1, nystrom = FALSE, nys.seed = NULL, model = list(), ...)
+  psi = 1, nystrom = FALSE, nys.seed = NULL, model = list(), train.samp,
+  test.samp, ...)
 }
 \arguments{
 \item{y}{Vector of response variables}
@@ -76,6 +77,12 @@ approximation.}
 
 \item{model}{DEPRECATED.}
 
+\item{train.samp}{(Optional) A vector indicating which of the data points
+should be used for training, and the remaining used for testing.}
+
+\item{test.samp}{(Optional) Similar to \code{train.samp}, but on test samples
+instead.}
+
 \item{formula}{The formula to fit when using formula interface.}
 
 \item{data}{Data frame containing variables when using formula interface.}
@@ -85,8 +92,8 @@ letting the function know to treat all variables as a single variable (i.e.
 shared scale parameter). Defaults to \code{FALSE}.}
 }
 \value{
-An \code{ipriorKernel} object which contains the relevant material
-  to be passed to the \code{iprior} function for model fitting.
+An \code{ipriorKernel} object which contains the relevant material to
+  be passed to the \code{iprior} function for model fitting.
 }
 \description{
 Load the kernel matrices for I-prior models

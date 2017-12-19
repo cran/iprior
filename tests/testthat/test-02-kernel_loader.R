@@ -95,7 +95,7 @@ test_that("Formula input", {
   mod2 <- kernL(dat$y, dat$X, kernel = "poly")
   tmp1 <- capture.output(print(mod1))
   tmp2 <- capture.output(print(mod2))
-  expect_equal(tmp1, tmp2)
+  expect_equal(tmp1[-3], tmp2[-3])  # object size does not match
 
 })
 
@@ -109,8 +109,53 @@ test_that("get_Hlam()", {
   mod2 <- kernL(y, x1, x2, x3, kernel = c("se", "pearson", "fbm"),
                  est.hurst = TRUE, est.lengthscale = TRUE)
   theta2 <- mod2$thetal$theta
-  expect_equivalent(get_Hlam(mod1, c(1, 1, 1), theta.is.lambda = TRUE),
+  expect_equivalent(get_Hlam(mod1, theta1, theta.is.lambda = TRUE),
                     get_Hlam(mod2, theta2))
+
+})
+
+test_that("Training samples specified", {
+
+  # Non-formula
+  y <- x <- 1:10
+  mod <- kernL(y, x, train.samp = 1:5)
+  expect_equal(mod$n, 5)
+  expect_equal(mod$y.test, mod$Xl.test[[1]])
+
+  # Formula
+  mod <- kernL(y ~ x, data.frame(y, x), train.samp = 1:5)
+  expect_equal(mod$n, 5)
+  expect_equivalent(mod$y.test, mod$Xl.test[[1]])
+
+})
+
+test_that("Test samples specified", {
+
+  # Non-formula
+  y <- x <- 1:10
+  mod <- kernL(y, x, test.samp = 1:5)
+  expect_equal(mod$n, 5)
+  expect_equal(mod$y.test, mod$Xl.test[[1]])
+
+  # Formula
+  mod <- kernL(y ~ x, data.frame(y, x), test.samp = 1:5)
+  expect_equal(mod$n, 5)
+  expect_equivalent(mod$y.test, mod$Xl.test[[1]])
+
+})
+
+test_that("Warn if training samples not correct", {
+
+  y <- x <- 1:10
+  expect_warning(kernL(y, x, train.samp = 1:200))
+  expect_warning(kernL(y, x, train.samp = 250))
+
+})
+
+test_that("Stop if train.samp and test.samp both specified", {
+
+  y <- x <- 1:10
+  expect_error(kernL(y, x, train.samp = 1:5, test.samp = 1:5))
 
 })
 

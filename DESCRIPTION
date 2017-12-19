@@ -1,6 +1,6 @@
 Package: iprior
 Title: Regression Modelling using I-Priors
-Version: 0.7.0
+Version: 0.7.1
 Authors@R: person("Haziq", "Jamil", email = "haziq.jamil@gmail.com",
                   role = c("aut", "cre"))
 Encoding: UTF-8
@@ -14,13 +14,13 @@ Depends: R (>= 3.2.5)
 Imports: doSNOW, foreach, ggplot2, mvtnorm, Rcpp (>= 0.12.5), reshape2,
         scales
 LinkingTo: Rcpp, RcppEigen
-Suggests: knitr, MASS, R.rsp, rmarkdown, testthat
+Suggests: caret, knitr, MASS, R.rsp, rmarkdown, testthat
 LazyData: yes
 VignetteBuilder: knitr, R.rsp
 RoxygenNote: 6.0.1
 NeedsCompilation: yes
-Packaged: 2017-11-03 11:02:13 UTC; haziqjamil
+Packaged: 2017-12-19 08:48:58 UTC; haziqjamil
 Author: Haziq Jamil [aut, cre]
 Maintainer: Haziq Jamil <haziq.jamil@gmail.com>
 Repository: CRAN
-Date/Publication: 2017-11-03 12:14:58 UTC
+Date/Publication: 2017-12-19 15:08:25 UTC

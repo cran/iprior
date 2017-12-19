@@ -140,7 +140,6 @@ kern_fbm <- function(x, y = NULL, gamma = 0.5, centre = TRUE) {
   A <- A + t(A)
   A <- abs(A) ^ gamma
   rvec <- apply(A, 1, sum)
-  # print(rvec)
   s <- sum(rvec)
 
   if (is.null(y)) {
@@ -212,7 +211,8 @@ kern_se <- function(x, y = NULL, l = 1, centre = TRUE) {
 
   res <- exp(-xmxp.norm / (2 * l ^ 2))
   attributes(res)$kernel <- paste0("se,", l)
-  res
+  if (isTRUE(centre)) return(kern_centre(res))
+  else return(res)
 }
 
 #' @rdname kernel
@@ -228,7 +228,7 @@ kern_poly <- function(x, y = NULL, c = 0, d = 2, lam.poly = 1, centre = TRUE) {
     stop("Polynomial offset must be greater than 0.", call. = FALSE)
   }
 
-  x.ip <- kern_canonical(x, y, centre)
+  x.ip <- kern_canonical(x, y, centre = centre)
   res <- (lam.poly * x.ip + c) ^ d
   attributes(res)$kernel <- paste0("poly", d, ",", c)
   res
@@ -264,4 +264,17 @@ kern_check_xy <- function(x, y, centre.xy) {
   }
 
   list(x = x, y = y, n = n, m = m)
+}
+
+kern_centre <- function(mat) {
+  # Helper function to centre the kernels.
+  #
+  # Args: An uncentred kernel matrix.
+  #
+  # Returns: A centred kernel matrix.
+  rvec <- apply(mat, 1, sum)
+  cvec <- apply(mat, 2, sum)
+  svec <- sum(mat)
+  n <- ncol(mat)
+  mat - rvec / n - rep(cvec, each = nrow(mat)) / n + svec / (n ^ 2)
 }

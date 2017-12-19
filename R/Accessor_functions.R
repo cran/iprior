@@ -29,6 +29,9 @@
 #'   matrix is returned using the data as input points. Otherwise, the kernel
 #'   matrix is evaluated with respect to this set of data as well. It must be a
 #'   list of vectors/matrices with similar dimensions to the original data.
+#' @param error.type (Optional) Report the mean squared error of prediction
+#'   (\code{"MSE"}), or the root mean squared error of prediction
+#'   (\code{"RMSE"})
 #'
 #' @name Accessors
 NULL
@@ -44,8 +47,8 @@ get_intercept <- function(object) {
 #' @export
 get_y <- function(object) {
   check_and_get_ipriorKernel(object)
-  if (is.iprobit(object)) {
-    warning("Numerised categorical variables.", call. = FALSE)
+  if (is.categorical(object)) {
+    warning("Categorical variables were numerised.", call. = FALSE)
   }
   res <- as.numeric(object$y + get_intercept(object))
   names(res) <- rownames(object$y)
@@ -158,17 +161,31 @@ get_kern_matrix <- function(object, theta = NULL, xstar = list(NULL)) {
     # til.cond <- (
     #   !isTRUE(estl$est.hurst) & !isTRUE(estl$est.lengt) & !isTRUE(estl$est.offs)
     # )
-    res <- get_Hlam(object, object$theta, FALSE)
+    res <- get_Hlam(object, object$thetal$theta, FALSE)
     return(res)
   }
 }
 
 #' @describeIn Accessors Obtain the training mean squared error.
 #' @export
-get_mse <- function(object) {
+get_prederror <- function(object, error.type = c("RMSE", "MSE")) {
   check_and_get_ipriorMod(object)
-  object$train.error
+  error.type <- match.arg(toupper(error.type), c("RMSE", "MSE"))
+  if (error.type == "MSE") fun <- function(x) x
+  if (error.type == "RMSE") fun <- function(x) sqrt(x)
+  train.error <- c("Training" = object$train.error)
+  if (is.ipriorKernel_cv(object)) {
+    res <- fun(c(train.error, "Test" = object$test$test.error))
+  } else {
+    res <- fun(train.error)
+  }
+  names(res) <- paste(names(res), error.type)
+  res
 }
+
+get_mse <- function(object) get_prederror(object, "MSE")
+
+get_rmse <- function(object) get_prederror(object, "RMSE")
 
 #' @describeIn Accessors Obtain information on which hyperparameters were
 #'   estimated and which were fixed.
@@ -207,4 +224,12 @@ get_niter <- function(object) {
 get_time <- function(object) {
   check_and_get_ipriorMod(object)
   object$time
+}
+
+#' @describeIn Accessors Extract the theta value at convergence. Note that this
+#'   is on an unrestricted scale (see the vignette for details).
+#' @export
+get_theta <- function(object) {
+  check_and_get_ipriorMod(object)
+  object$theta
 }

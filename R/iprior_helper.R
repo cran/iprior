@@ -52,7 +52,8 @@ iprior_method_checker <- function(object, method) {
     if (is.null(object$BlockBStuff)) {
       res["em.reg"] <- TRUE
     } else {
-      if (!isTRUE(object$estl$est.lambda) | !isTRUE(object$estl$est.psi))
+      if (!is.null(object$y.levels)) res["em.closed"] <- TRUE
+      else if (!isTRUE(object$estl$est.lambda) | !isTRUE(object$estl$est.psi))
         res["direct"] <- TRUE
       else
         res["em.closed"] <- TRUE
@@ -65,6 +66,9 @@ iprior_method_checker <- function(object, method) {
 
   res
 }
+
+#' @export
+.iprior_method_checker <- iprior_method_checker
 
 update_control <- function(arg.list, default.list) {
   # In most of the iprior_x functions, a list of control options is required.
@@ -124,6 +128,7 @@ get_Hlam <- function(object, theta, theta.is.lambda = FALSE) {
   # Returns: The scaled kernel matrix. This has a "kernel" attribute indicating
   # which kernels were used to generate it.
   if (isTRUE(theta.is.lambda)) {
+    kernels <- object$kernels
     lambda <- theta
     lambda.only <- TRUE
   } else {
@@ -143,10 +148,11 @@ get_Hlam <- function(object, theta, theta.is.lambda = FALSE) {
       Hl <- get_Hl(object$Xl, list(NULL), kernels = kernels, lambda = lambda)
     }
   }
+  lambda[is.kern_poly(kernels)] <- 1
   calc_Hlam(Hl, lambda[seq_along(Hl)], object)
 }
 
-get_Htildelam <- function(object, theta, xstar) {
+get_Htildelam <- function(object, theta, xstar, theta.is.lambda = FALSE) {
   # A helper function to calculate Hlam given a new set of data. This is similar
   # to get_Hlam().
   #
@@ -154,9 +160,14 @@ get_Htildelam <- function(object, theta, xstar) {
   # of new data.
   #
   # Returns: Assuming m new data points, then an m x n matrix is returned.
-  tmp <- theta_to_param(theta, object)
-  kernels <- tmp$kernels
-  lambda <- tmp$lambda
+  if (isTRUE(theta.is.lambda)) {
+    kernels <- object$kernels
+    lambda <- theta
+  } else {
+    tmp <- theta_to_param(theta, object)
+    kernels <- tmp$kernels
+    lambda <- tmp$lambda
+  }
 
   # if (is.nystrom(object)) {
   #   m <- object$nystroml$nys.size
@@ -167,6 +178,7 @@ get_Htildelam <- function(object, theta, xstar) {
   #   res <- Hlam.new %*% solve(A, Hlam)
   # } else {
     Hl <- get_Hl(object$Xl, xstar, kernels = kernels, lambda = lambda)
+    lambda[is.kern_poly(kernels)] <- 1
     res <- calc_Hlam(Hl, lambda, object)
   # }
 

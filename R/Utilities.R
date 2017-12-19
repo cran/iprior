@@ -99,12 +99,12 @@ check_and_get_ipriorKernel <- function(object, assign.to.env = FALSE) {
   #
   # Returns: Replacement of object with ipriorKernel object if necessary, or
   # assignment of ipriorKernel object to environment.
-  if (is.ipriorMod(object)) {
+  if (is.ipriorMod(object) | is.ipriorKernel(object$ipriorKernel)) {
     if (isTRUE(assign.to.env)) {
       list2env(object$ipriorKernel, parent.frame())
     } else {
       assign(deparse(substitute(object)), object$ipriorKernel,
-           envir = parent.frame())
+             envir = parent.frame())
     }
   } else if (is.ipriorKernel(object)) {
     if (isTRUE(assign.to.env)) {
@@ -150,7 +150,7 @@ is.ipriorMod <- function(x) inherits(x, "ipriorMod")
 #' @export
 is.ipriorKernel <- function(x) inherits(x, "ipriorKernel")
 
-is.ipriorKernel_old <- function(x) inherits(x, "ipriorKernel_ikd")
+is.ipriorKernel_old <- function(x) inherits(x, "ipriorKernel_old")
 
 is.ipriorKernel_nys <- function(x) {
   if (is.ipriorMod(x)) x <- x$ipriorKernel
@@ -161,16 +161,36 @@ is.ipriorKernel_nys <- function(x) {
   }
 }
 
+is.ipriorKernel_cv <- function(x) {
+  if (is.ipriorMod(x)) x <- x$ipriorKernel
+  if (is.ipriorKernel(x)) {
+    return(!is.null(x$y.test) & !is.null(x$Xl.test))
+  } else {
+    return(FALSE)
+  }
+}
+
+#' @export
+.is.ipriorKernel_cv <- is.ipriorKernel_cv
+
 #' @rdname is.iprior_x
 #' @export
 is.nystrom <- is.ipriorKernel_nys
 
-#' @rdname is.iprior_x
-#' @export
-is.iprobit <- function(x) {
+is.categorical <- function(x) {
+  # Checks whether iprobit fitting is possible. This just checks whether the
+  # response variables were factor type.
+  #
+  # Args: An ipriorMod, ipriorKernel or even an iprobitMod_x object (see iprobit
+  # package for details.)
+  #
+  # Returns: Logical.
   check_and_get_ipriorKernel(x)
-  isTRUE(x$probit)
+  !is.null(x$y.levels)
 }
+
+#' @export
+.is.categorical <- is.categorical
 
 #' Test kernel attributes
 #'
@@ -306,6 +326,9 @@ get_y_and_levels <- function(y) {
 #' @export
 .checkLevels <- get_y_and_levels
 
+#' @export
+.get_y_and_levels <- get_y_and_levels
+
 fix_call_default <- function(cl = match.call(), new.name = "iprior") {
   # Replace the default call name with a new name. When using the default call,
   # it is possible that some of the X names are blank. This fixes that too.
@@ -320,6 +343,9 @@ fix_call_default <- function(cl = match.call(), new.name = "iprior") {
   cl
 }
 
+#' @export
+.fix_call_default <- fix_call_default
+
 fix_call_formula <- function(cl = match.call(), new.name = "iprior") {
   # Replace the formula call name with a new name.
   #
@@ -328,6 +354,116 @@ fix_call_formula <- function(cl = match.call(), new.name = "iprior") {
   # Returns: The fixed call.
   cl[[1L]] <- as.name(new.name)
   cl
+}
+
+#' @export
+.fix_call_formula <- fix_call_formula
+
+formula_to_xy <- function(formula, data, one.lam) {
+  # Convert formula entry to y, X entry.
+  #
+  # Args: The formula, data frame and a logical option for one.lam.
+  #
+  # Returns: A list containing the data y and X, interactions instructions, x
+  # and y names, and model terms (tt).
+  mf <- model.frame(formula = formula, data = data)
+  tt <- terms(mf)
+  Terms <- delete.response(tt)
+  x <- model.frame(Terms, mf)
+  y <- model.response(mf)
+  xname <- names(x)
+  yname <- names(attr(tt, "dataClasses"))[1]
+  x <- as.list(x)
+  attr(x, "terms") <- NULL
+  # attr(y, "yname") <- yname
+
+  # Interactions ---------------------------------------------------------------
+  interactions <- NULL
+  tmpo <- attr(tt, "order")
+  tmpf <- attr(tt, "factors")
+  tmpf2 <- as.matrix(tmpf[-1, tmpo == 2])  # this obtains 2nd order interactions
+  int2 <- apply(tmpf2, 2, function(x) which(x == 1))
+  if (any(tmpo == 2)) interactions <- int2
+  intr.3plus <- NULL
+  tmpf3 <- as.matrix(tmpf[-1, tmpo > 2])
+  int3 <- apply(tmpf3, 2, where_int)
+  if (any(tmpo > 2)) intr.3plus <- int3
+  interactions <- list(intr = interactions, intr.3plus = intr.3plus)
+
+  # Deal with one.lam option ---------------------------------------------------
+  if (isTRUE(one.lam)) {
+    # Writes x and xname to env.
+    list2env(deal_with_one.lam(x, interactions), envir = environment())
+  }
+
+  list(y = y, Xl = x, interactions = interactions, xname = xname, yname = yname,
+       tt = tt)
+}
+
+#' @export
+.formula_to_xy <- formula_to_xy
+
+deal_with_one.lam <- function(x, interactions) {
+  # Helper function to convert list of X according to one.lam option.
+  #
+  # Args: List of covariates and interactions information from ipriorKernel.
+  #
+  # Returns: Update Xl.
+  xname <- names(x)
+  xnl <- length(xname)
+  if (!all(sapply(interactions, is.null))) {
+    stop("Cannot use option one.lam = TRUE with interactions.", call. = FALSE)
+  }
+  if (length(x) == 1) {
+    message("Option one.lam = TRUE used with a single covariate anyway.")
+  }
+  attributes(x)$terms <- attributes(x)$names <- NULL
+  if (xnl <= 3) {
+    xname <- paste(xname, collapse = " + ")
+  } else {
+    xname <- paste(xname[1], "+ ... +", xname[xnl])
+  }
+  x <- list(matrix(unlist(x), ncol = length(x)))
+  names(x) <- xname
+  attr(x, "one.lam") <- TRUE
+
+  list(x = x, xname = xname)
+}
+
+#' @export
+.deal_with_one.lam <- deal_with_one.lam
+
+terms_to_xy <- function(object, newdata) {
+  # Args: An ipriorKernel object.
+  tt <- object$terms
+  Terms <- delete.response(tt)
+  x <- model.frame(Terms, newdata)
+  y <- NULL
+  if (any(colnames(newdata) == object$yname))
+    y <- model.extract(model.frame(tt, newdata), "response")
+
+  # Deal with one.lam option ---------------------------------------------------
+  one.lam <- attr(object$Xl, "one.lam")
+  if (isTRUE(one.lam)) {
+    # Writes x and xname to env.
+    list2env(deal_with_one.lam(x, object$interactions), envir = environment())
+  }
+
+  list(Xl = x, y = y)
+}
+
+#' @export
+.terms_to_xy <- terms_to_xy
+
+fastSquareRoot2 <- function(x) {
+  # Function to quickly find a square root of a matrix from its
+  # eigendecomposition.
+  #
+  # Args: x a square matrix.
+  #
+  # Returns: x ^ {1/2}.
+  tmp <- eigenCpp(x)
+  tmp$vec %*% tcrossprod(diag(sqrt(abs(tmp$val))), tmp$vec)
 }
 
 .onUnload <- function(libpath) {

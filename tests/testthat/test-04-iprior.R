@@ -165,14 +165,14 @@ test_that("iprior_nystrom", {
 
 })
 
-# test_that("iprior_parallel", {
+# test_that("iprior_parallel", {  # Can't do this test in travis-ci or appveyor
 #
 #   mod <- kernL(y ~ ., gen_smooth(10, seed = 123), kernel = "fbm")
 #   suppressWarnings({
-#     mod1 <- iprior(mod, control = list(silent = TRUE, restarts = 2))
+#     mod1 <- iprior(mod, control = list(silent = TRUE, restarts = 1))
 #     expect_message(
 #       mod2 <- iprior_parallel(mod, control = list(theta0 = 1:2, silent = TRUE,
-#                                                   restarts = 2))
+#                                                   restarts = 1))
 #     )
 #   })
 #   expect_equal(logLik(mod1), -25.4149, tolerance = 1e-5)

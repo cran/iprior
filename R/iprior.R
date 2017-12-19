@@ -137,7 +137,7 @@ iprior.default <- function(y, ..., kernel = "linear", method = "direct",
                            est.lengthscale = FALSE, est.offset = FALSE,
                            est.psi = TRUE, fixed.hyp = NULL, lambda = 1,
                            psi = 1, nystrom = FALSE, nys.seed = NULL,
-                           model = list()) {
+                           model = list(), train.samp, test.samp) {
   # Load the I-prior model -----------------------------------------------------
   if (is.ipriorKernel(y)) {
     mod <- y
@@ -147,9 +147,9 @@ iprior.default <- function(y, ..., kernel = "linear", method = "direct",
                   est.lengthscale = est.lengthscale, est.offset = est.offset,
                   est.psi = est.psi, fixed.hyp = fixed.hyp, lambda = lambda,
                   psi = psi, nystrom = nystrom, nys.seed = nys.seed,
-                  model = model)
+                  model = model, train.samp = train.samp, test.samp = test.samp)
   }
-  if (is.iprobit(mod)) {
+  if (is.categorical(mod)) {
     warning("Categorical responses loaded. Consider using iprobit package.",
             call. = FALSE)
   }
@@ -245,14 +245,21 @@ iprior.default <- function(y, ..., kernel = "linear", method = "direct",
         res$est.conv <- res$message
     }
   }
-
+  res$ipriorKernel <- mod
   res$coefficients <- reduce_theta(res$param.full, mod$estl)$theta.reduced
-  tmp <- predict_iprior(mod$y, y.hat = res$y.hat)  # no intercept added
+
+  # Fitted and predicted values ------------------------------------------------
+  tmp <- mse_iprior(mod$y, y.hat = res$y.hat)  # no intercept added
   res$fitted.values <- tmp$y + get_intercept(mod)
   names(res$fitted.values) <- attr(mod$y, "dimnames")[[1]]
   res$residuals <- tmp$resid
   res$train.error <- tmp$train.error
-  res$ipriorKernel <- mod
+  if (!is.null(mod$y.test) & !is.null(mod$Xl.test)) {
+    res$test <- structure(predict_iprior(res, mod$Xl.test, mod$y.test),
+                          class = "ipriorPredict")
+  }
+
+  # Other stuff ----------------------------------------------------------------
   res$method <- method
   res$control <- control
   # res$fullcall <- match.call()
@@ -271,14 +278,15 @@ iprior.formula <- function(formula, data, kernel = "linear", one.lam = FALSE,
                            est.lengthscale = FALSE, est.offset = FALSE,
                            est.psi = TRUE, fixed.hyp = NULL, lambda = 1,
                            psi = 1, nystrom = FALSE, nys.seed = NULL,
-                           model = list(), ...) {
+                           model = list(), train.samp, test.samp, ...) {
   # Simply load the kernel and pass to iprior.default() ------------------------
   mod <- kernL.formula(formula, data, kernel = kernel, one.lam = one.lam,
-                        est.lambda = est.lambda, est.hurst = est.hurst,
-                        est.lengthscale = est.lengthscale,
-                        est.offset = est.offset, est.psi = est.psi,
-                        fixed.hyp = fixed.hyp, lambda = lambda, psi = psi,
-                        nystrom = nystrom, nys.seed = nys.seed, model = model)
+                       est.lambda = est.lambda, est.hurst = est.hurst,
+                       est.lengthscale = est.lengthscale,
+                       est.offset = est.offset, est.psi = est.psi,
+                       fixed.hyp = fixed.hyp, lambda = lambda, psi = psi,
+                       nystrom = nystrom, nys.seed = nys.seed, model = model,
+                       train.samp = train.samp, test.samp = test.samp, ...)
   res <- iprior.default(y = mod, method = method, control = control)
   res$call <- fix_call_formula(match.call(), "iprior")
   res$ipriorKernel$call <- fix_call_formula(match.call(), "kernL")
@@ -290,7 +298,17 @@ iprior.formula <- function(formula, data, kernel = "linear", one.lam = FALSE,
 #' @export
 iprior.ipriorKernel <- function(object, method = "direct",
                                  control = list(), ...) {
-  iprior.default(y = object, method = method, control = control)
+  res <- iprior.default(y = object, method = method, control = control)
+
+  # Fix call -------------------------------------------------------------------
+  res$object$call <- ipriorKernel.call <- object$call
+  if (is.null(object$formula)) {
+    res$call <- fix_call_default(ipriorKernel.call, "iprior")
+  } else {
+    res$call <- fix_call_formula(ipriorKernel.call, "iprior")
+  }
+
+  res
 }
 
 #' @describeIn iprior Re-run or continue running the EM algorithm from last

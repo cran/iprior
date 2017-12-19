@@ -1,3 +1,14 @@
+# v0.7.1
+
+* Modification to centering of SE and polynomial kernels.
+* Added option `train.samp` and `test.samp` to `kernL()` and `iprior()` to easily split training and test samples for cross-validation.
+* Added a function to perform k-fold cross validation experiments for I-prior models.
+* Fixed minor bug in `iprior_em_closed()` which caused lambda to expand together with the number of iterations.
+* Fixed incorrect calculation of polynomial kernel.
+* Removed all legacy functions.
+* Updated vignette.
+* Added vignette for cross-validation function.
+
 # v0.7.0
 
 * **This udpate provides a complete redesign of the internals of the package. There are more kernels supported, new estimation methods, and plots are done using the `ggplot2` package.**

@@ -74,12 +74,10 @@ predict.ipriorMod <- function(object, newdata = list(), y.test = NULL,
     return(cat("No new data supplied. Use fitted() instead."))
   }
   if (!is.null(object$ipriorKernel$formula)) {
-    tt <- object$ipriorKernel$terms
-    Terms <- delete.response(tt)
-    xstar <- model.frame(Terms, newdata)
-    if (any(colnames(newdata) == object$ipriorKernel$yname))
-      y.test <- model.extract(model.frame(tt, newdata), "response")
-    xrownames <- rownames(xstar)
+    tmp <- terms_to_xy(object$ipriorKernel, newdata)
+    y.test <- tmp$y
+    xstar <- tmp$Xl
+    xrownames <- rownames(newdata)
   } else {
     if (any(sapply(newdata, is.vector))) {
       newdata <- lapply(newdata, as.matrix)
@@ -88,14 +86,9 @@ predict.ipriorMod <- function(object, newdata = list(), y.test = NULL,
     xrownames <- rownames(do.call(cbind, newdata))
   }
 
-  Hlam.new <- get_Htildelam(object$ipriorKernel, object$theta, xstar)
-  y.hat.new <- get_intercept(object) + Hlam.new %*% object$w
-  res <- predict_iprior(y.test, y.hat.new)
+  res <- predict_iprior(object, xstar, y.test, intervals = intervals,
+                        alpha = alpha)
   names(res$y) <- xrownames
-  names(res)[grep("train.error", names(res))] <- "test.error"
-  if (isTRUE(intervals)) {
-    res <- c(res, predict_iprior_quantiles(object, Hlam.new, res$y, alpha))
-  }
   class(res) <- "ipriorPredict"
   res
 }
@@ -104,9 +97,9 @@ predict.ipriorMod <- function(object, newdata = list(), y.test = NULL,
 #' @export
 print.ipriorPredict <- function(x, rows = 10, dp = 3, ...) {
   if (!is.null(x$train.error)) {
-    cat("Training MSE:", x$train.error, "\n")
+    cat("Training RMSE:", sqrt(x$train.error), "\n")
   } else if (!is.nan(x$test.error)) {
-    cat("Test MSE:", x$test.error, "\n")
+    cat("Test RMSE:", sqrt(x$test.error), "\n")
   } else {
     cat("Test data not provided.\n")
   }
@@ -125,13 +118,34 @@ print.ipriorPredict <- function(x, rows = 10, dp = 3, ...) {
     names(tab) <- c(lower, "Mean", upper)
     print(tab[seq_len(rows), ])
   }
-  if (length(x$y) > rows) cat("# ... with", length(x$y) - rows, "more values")
-  cat("\n")
+  if (length(x$y) > rows) cat("# ... with", length(x$y) - rows, "more values\n")
 }
 
-predict_iprior <- function(y, y.hat) {
-  # This is the main helper function to calculate fitted or predicted values. It
-  # appears in iprior(), fitted() and predict() for ipriorMod objects.
+predict_iprior <- function(object, xstar, y.test, intervals = FALSE,
+                           alpha = 0.05) {
+  # This is the main helper function to calculate predicted values, and if
+  # required, the credibility intervals for prediction.
+  #
+  # Args: An ipriorMod object, a list of new data points (in the style of
+  # non-formula, even if fitted using formula), and data or test data for
+  # calculation of residuals and prediction error.
+  #
+  # Returns: A list containing the predicted values, residuals and MSE.
+  Hlam.new <- get_Htildelam(object$ipriorKernel, object$theta, xstar)
+  y.hat.new <- object$ipriorKernel$intercept + Hlam.new %*% object$w
+  res <- mse_iprior(y.test, y.hat.new)
+
+  if (isTRUE(intervals)) {
+    res <- c(res, predict_iprior_quantiles(object, Hlam.new, res$y, alpha))
+  }
+
+  names(res)[grep("train.error", names(res))] <- "test.error"
+  res
+}
+
+mse_iprior <- function(y, y.hat) {
+  # A helper function to calculate residuals and mean squared error from y and
+  # y.hat. It appears in iprior(), fitted() and predict() for ipriorMod objects.
   #
   # Args: y (data or test data for calculation of errors); y.hat is the
   # predicted y values.

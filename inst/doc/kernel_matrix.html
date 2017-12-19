@@ -76,7 +76,6 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <div id="introduction" class="section level2">
 <h2>Introduction</h2>
-<!-- Adapted from Jamil \& Bergsma (2017).  -->
 <p>The M-step involving the scale parameters <span class="math inline">\(\boldsymbol\lambda\)</span> in the EM algorithm for I-prior models can be found in closed-form in the following situations:</p>
 <ol style="list-style-type: decimal">
 <li>A single scale parameter <code>lambda</code> being used.</li>
@@ -238,31 +237,27 @@ findH2 &lt;-<span class="st"> </span><span class="cf">function</span>(z, ind1, i
 <div id="example" class="section level2">
 <h2>Example</h2>
 <p>Regression with 3 covariates and two-way interactions between all 3 covariates. Here, <code>p = 3</code>, <code>l = 3</code> and <code>h = q = 6</code>. In full, the index of the <code>H.mat</code> is <code>c(1, 2, 3, 1:2, 1:3, 2:3)</code>.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(mod &lt;-<span class="st"> </span><span class="kw">.kernL</span>(stack.loss <span class="op">~</span><span class="st"> </span>. <span class="op">^</span><span class="st"> </span><span class="dv">2</span>, <span class="dt">data =</span> stackloss))
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(mod &lt;-<span class="st"> </span><span class="kw">kernL</span>(stack.loss <span class="op">~</span><span class="st"> </span>. <span class="op">^</span><span class="st"> </span><span class="dv">2</span>, <span class="dt">data =</span> stackloss))
+## Sample size: 21 
+## No. of covariates: 3 
+## Object size: 142.7 kB
 ## 
-## Sample size =  21 
-## Number of x variables, p =  3 
-## Number of scale parameters, l =  3 
-## Number of interactions =  3 
+## Kernel matrices:
+##  1 linear [1:21, 1:21] 383 383 285.2 30.8 30.8 ... 
+##  2 linear [1:21, 1:21] 34.87 34.87 23.06 17.15 5.34 ... 
+##  3 linear [1:21, 1:21] 7.37 4.65 10.08 1.94 1.94 ... 
+##  4 linear x linear [1:21, 1:21] 13355 13355 6575 528 164 ... 
+##  5 linear x linear [1:21, 1:21] 2822 1782.3 2875.1 59.6 59.6 ... 
+##  6 linear x linear [1:21, 1:21] 256.9 162.2 232.4 33.3 10.4 ... 
 ## 
-## Info on H matrix:
+## Hyperparameters to estimate:
+## lambda[1], lambda[2], lambda[3], psi
 ## 
-## List of 6
-##  $ Air.Flow             : num [1:21, 1:21] 383 383 285.2 30.8 30.8 ...
-##   ..- attr(*, &quot;kernel&quot;)= chr &quot;linear&quot;
-##  $ Water.Temp           : num [1:21, 1:21] 34.87 34.87 23.06 17.15 5.34 ...
-##   ..- attr(*, &quot;kernel&quot;)= chr &quot;linear&quot;
-##  $ Acid.Conc.           : num [1:21, 1:21] 7.37 4.65 10.08 1.94 1.94 ...
-##   ..- attr(*, &quot;kernel&quot;)= chr &quot;linear&quot;
-##  $ Air.Flow:Water.Temp  : matrix x matrix [1:21, 1:21] 13355 13355 6575 528 164 ...
-##   ..- attr(*, &quot;kernel&quot;)= chr &quot;linear&quot;
-##  $ Air.Flow:Acid.Conc.  : matrix x matrix [1:21, 1:21] 2822 1782.3 2875.1 59.6 59.6 ...
-##   ..- attr(*, &quot;kernel&quot;)= chr &quot;linear&quot;
-##  $ Water.Temp:Acid.Conc.: matrix x matrix [1:21, 1:21] 256.9 162.2 232.4 33.3 10.4 ...
-##   ..- attr(*, &quot;kernel&quot;)= chr &quot;linear&quot;
+## Estimation methods available:
+## direct, em, canonical, mixed, fixed
 p &lt;-<span class="st"> </span><span class="dv">3</span></code></pre></div>
 <p>The index of all two-way interactions are obtained by the kernel loader function. It is contained in <code>model$intr</code>. The following shows the indices of the variables which have two-way interactions. For example, variable 1 interacts with variable 2, variable 1 with 3 and finally 2 with 3. This matrix will always have 2 rows, and columns equal to <code>m</code>.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">intr &lt;-<span class="st"> </span>mod<span class="op">$</span>model<span class="op">$</span>intr
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">intr &lt;-<span class="st"> </span>mod<span class="op">$</span>intr
 <span class="kw">colnames</span>(intr) &lt;-<span class="st"> </span><span class="ot">NULL</span>
 intr
 ##      [,1] [,2] [,3]
@@ -272,9 +267,9 @@ intr
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">h &lt;-<span class="st"> </span><span class="kw">length</span>(mod<span class="op">$</span>Hl)
 z &lt;-<span class="st"> </span><span class="dv">1</span><span class="op">:</span>h
 (ind1 &lt;-<span class="st"> </span><span class="kw">rep</span>(z, <span class="dt">times =</span> (<span class="kw">length</span>(z) <span class="op">-</span><span class="st"> </span><span class="dv">1</span>)<span class="op">:</span><span class="dv">0</span>))
-##  [1] 1 1 1 1 1 2 2 2 2 3 3 3 4 4 5
+## [1] 1 1 2
 (ind2 &lt;-<span class="st"> </span><span class="kw">unlist</span>(<span class="kw">lapply</span>(<span class="dv">2</span><span class="op">:</span><span class="kw">length</span>(z), <span class="cf">function</span>(x) <span class="kw">c</span>(<span class="ot">NA</span>, z)[<span class="op">-</span>(<span class="dv">0</span><span class="op">:</span>x)])))
-##  [1] 2 3 4 5 6 3 4 5 6 4 5 6 5 6 6</code></pre></div>
+## [1] 2 3 3</code></pre></div>
 <div id="indexing-the-kernel-matrrix-list-hl" class="section level3">
 <h3>Indexing the kernel matrrix list <code>Hl</code></h3>
 <p>All of the above would be performed in <code>kernL()</code> so <code>ind1</code> and <code>ind2</code> would be available in environment. We now enter the <code>indxFn()</code> function. Set <code>k = 1</code>. First find the index for which variable <code>k</code> has interactions (in relation to the positioning in <code>intr</code>). Variable 1 appears in columns 1 and 2 of <code>intr</code>.</p>
@@ -301,18 +296,12 @@ ind.int1 &lt;-<span class="st"> </span>intr[<span class="dv">1</span>, ] <span c
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ind &lt;-<span class="st"> </span><span class="kw">paste</span>(ind1, ind2, <span class="dt">sep =</span> <span class="st">&quot;x&quot;</span>)
 <span class="kw">names</span>(ind) &lt;-<span class="st"> </span><span class="kw">as.character</span>(<span class="dv">1</span><span class="op">:</span><span class="kw">length</span>(ind))
 ind
-##     1     2     3     4     5     6     7     8     9    10    11    12 
-## &quot;1x2&quot; &quot;1x3&quot; &quot;1x4&quot; &quot;1x5&quot; &quot;1x6&quot; &quot;2x3&quot; &quot;2x4&quot; &quot;2x5&quot; &quot;2x6&quot; &quot;3x4&quot; &quot;3x5&quot; &quot;3x6&quot; 
-##    13    14    15 
-## &quot;4x5&quot; &quot;4x6&quot; &quot;5x6&quot;</code></pre></div>
+##     1     2     3 
+## &quot;1x2&quot; &quot;1x3&quot; &quot;2x3&quot;</code></pre></div>
 <p>For clarity, in this example we rename the entries of <code>ind</code> to reflect the three unique scale parameters, as follows:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ind.tmp
-##         1         2         3         4         5         6         7 
-##     &quot;1x2&quot;     &quot;1x3&quot;   &quot;1x1:2&quot;   &quot;1x1:3&quot;   &quot;1x2:3&quot;     &quot;2x3&quot;   &quot;2x1:2&quot; 
-##         8         9        10        11        12        13        14 
-##   &quot;2x1:3&quot;   &quot;2x2:3&quot;   &quot;3x1:2&quot;   &quot;3x1:3&quot;   &quot;3x2:3&quot; &quot;1:2x1:3&quot; &quot;1:2x2:3&quot; 
-##        15 
-## &quot;1:3x2:3&quot;</code></pre></div>
+##     1     2     3 
+## &quot;1x2&quot; &quot;1x3&quot; &quot;2x3&quot;</code></pre></div>
 <p>To remind ourselves, the matrices <span class="math inline">\(\mathbf P_k\)</span>, <span class="math inline">\(\mathbf R_k\)</span> and the product <span class="math inline">\(\mathbf P_k \mathbf R_k\)</span> are defined as</p>
 <p><span class="math display">\[
 \begin{align}
@@ -339,7 +328,7 @@ ind[za]
 (zb &lt;-<span class="st"> </span><span class="kw">which</span>((ind1 <span class="op">%in%</span><span class="st"> </span>grid.PR[,<span class="dv">1</span>] <span class="op">&amp;</span><span class="st"> </span>ind2 <span class="op">%in%</span><span class="st"> </span>grid.PR[,<span class="dv">2</span>]) <span class="op">|</span>
 <span class="st">            </span>(ind2 <span class="op">%in%</span><span class="st"> </span>grid.PR[,<span class="dv">1</span>] <span class="op">&amp;</span><span class="st"> </span>ind1 <span class="op">%in%</span><span class="st"> </span>grid.PR[,<span class="dv">2</span>])
 ))
-## [1]  7  8 10 11</code></pre></div>
+## integer(0)</code></pre></div>
 <p>Finally, what’s left is to take care of the scale parameters. Our scale parameters are contained in the vector of length <code>q=6</code> called <code>lambda</code>. For the first part, that is simply the index <code>nok</code>. For the second part, we need to find the indices using <code>expand.grid()</code> again, but this time using the indices <code>k.int.lam</code> and <code>nok</code>. <code>k.int.lam</code> would give us the indices of the scale parameters which have interactions with <code>k</code>.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(nok)
 ## [1] 2 3
@@ -368,15 +357,13 @@ ind[za]
 ## 1    1    6
 (zc &lt;-<span class="st"> </span><span class="kw">which</span>((ind1 <span class="op">%in%</span><span class="st"> </span>grid.PU1[,<span class="dv">1</span>] <span class="op">&amp;</span><span class="st"> </span>ind2 <span class="op">%in%</span><span class="st"> </span>grid.PU1[,<span class="dv">2</span>]) <span class="op">|</span>
 <span class="st">             </span>(ind2 <span class="op">%in%</span><span class="st"> </span>grid.PU1[,<span class="dv">1</span>] <span class="op">&amp;</span><span class="st"> </span>ind1 <span class="op">%in%</span><span class="st"> </span>grid.PU1[,<span class="dv">2</span>])))
-## [1] 5
+## integer(0)
 
 <span class="co"># Check</span>
 ind[zc]
-##     5 
-## &quot;1x6&quot;
+## named character(0)
 ind.tmp[zc]
-##       5 
-## &quot;1x2:3&quot;</code></pre></div>
+## named character(0)</code></pre></div>
 <p>For the second part, we use <code>expand.grid()</code> to find the indices for the double sum involving <code>k.int</code> (the Hadamard products involving <code>k</code>) and <code>k.noint</code>.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(grid.PU2 &lt;-<span class="st"> </span><span class="kw">expand.grid</span>(k.int, k.noint))
 ##   Var1 Var2
@@ -384,15 +371,13 @@ ind.tmp[zc]
 ## 2    5    6
 (zd &lt;-<span class="st"> </span><span class="kw">which</span>((ind1 <span class="op">%in%</span><span class="st"> </span>grid.PU2[,<span class="dv">1</span>] <span class="op">&amp;</span><span class="st"> </span>ind2 <span class="op">%in%</span><span class="st"> </span>grid.PU2[,<span class="dv">2</span>]) <span class="op">|</span>
 <span class="st">             </span>(ind2 <span class="op">%in%</span><span class="st"> </span>grid.PU2[,<span class="dv">1</span>] <span class="op">&amp;</span><span class="st"> </span>ind1 <span class="op">%in%</span><span class="st"> </span>grid.PU2[,<span class="dv">2</span>])))
-## [1] 14 15
+## integer(0)
 
 <span class="co"># Check</span>
 ind[zd]
-##    14    15 
-## &quot;4x6&quot; &quot;5x6&quot;
+## named character(0)
 ind.tmp[zd]
-##        14        15 
-## &quot;1:2x2:3&quot; &quot;1:3x2:3&quot;</code></pre></div>
+## named character(0)</code></pre></div>
 <p>Finally, we need to take care of the scale parameters. For the first part, we only require the index from <code>k.noint</code>, while for the second part we need the combinations of <code>k.int.lam</code> (indices of the scale parameters which have interactions with k) and <code>k.noint</code>.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(k.noint)
 ## [1] 6
@@ -410,7 +395,7 @@ ind.tmp[zd]
 <p>As <span class="math inline">\(\mathbf P_k\mathbf R_k\)</span> and <span class="math inline">\(\mathbf P_k\mathbf U_k\)</span> are made up linearly of two-way matrix products of the kernel matrices which are stored in <code>H2l</code>, all we need is to add the right entries of <code>H2l</code> together (and not forgetting the respective scale parameters). The indices are given by the function <code>indxFn()</code>.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">indB &lt;-<span class="st"> </span><span class="kw">indxFn</span>(<span class="dv">1</span>)
 indB<span class="op">$</span>PRU  <span class="co"># = c(za, zc, zb, zd) i.e. index of Hl to sum together</span>
-## [1]  1  2  5  7  8 10 11 14 15
+## [1] 1 2
 <span class="kw">rbind</span>(indB<span class="op">$</span>PRU.lam1, indB<span class="op">$</span>PRU.lam2)  <span class="co"># index of the lambdas to cross-product with Hl</span>
 ##      [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8] [,9]
 ## [1,]    0    0    0    2    3    2    3    2    3
@@ -447,15 +432,13 @@ S &lt;-<span class="st"> </span><span class="kw">Reduce</span>(<span class="st">
 ## [3,]    4    5
 (ze &lt;-<span class="st"> </span><span class="kw">which</span>((ind1 <span class="op">%in%</span><span class="st"> </span>grid.Psq[,<span class="dv">1</span>] <span class="op">&amp;</span><span class="st"> </span>ind2 <span class="op">%in%</span><span class="st"> </span>grid.Psq[,<span class="dv">2</span>]) <span class="op">|</span>
 <span class="st">             </span>(ind2 <span class="op">%in%</span><span class="st"> </span>grid.Psq[,<span class="dv">1</span>] <span class="op">&amp;</span><span class="st"> </span>ind1 <span class="op">%in%</span><span class="st"> </span>grid.Psq[,<span class="dv">2</span>])))
-## [1]  3  4 13
+## integer(0)
 
 <span class="co"># Check</span>
 ind[ze]
-##     3     4    13 
-## &quot;1x4&quot; &quot;1x5&quot; &quot;4x5&quot;
+## named character(0)
 ind.tmp[ze]
-##         3         4        13 
-##   &quot;1x1:2&quot;   &quot;1x1:3&quot; &quot;1:2x1:3&quot;
+## named character(0)
 
 grid.Psq.lam &lt;-<span class="st"> </span><span class="ot">NULL</span>
 <span class="cf">if</span> (<span class="kw">length</span>(k.int.lam) <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span>) grid.Psq.lam &lt;-<span class="st"> </span><span class="kw">t</span>(<span class="kw">combn</span>(<span class="kw">c</span>(<span class="dv">0</span>, k.int.lam), <span class="dv">2</span>))

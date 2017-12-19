@@ -53,7 +53,37 @@ summary.ipriorMod <- function(object, ...) {
                z          = round(zval, 3),
                `P[|Z>z|]` = round(2 * pnorm(-abs(zval)), 3))
 
-  param.tab <- theta_to_param(object$theta, object$ipriorKernel)
+  x.kern <- kernels_for_summary(object)
+
+  if (object$method == "mixed") {
+    maxit <- object$control$maxit + object$control$em.maxit
+    niter <- object$niter + object$control$em.maxit
+  } else {
+    maxit <- object$control$maxit
+    niter <- object$niter
+  }
+
+  train.rmse <- sqrt(object$train.error)
+  test.rmse <- NULL
+  if (is.ipriorKernel_cv(object)) test.rmse <- sqrt(object$test$test.error)
+
+  res <- list(resid.summ = resid.summ, tab = tab, loglik = logLik(object),
+              train.rmse = train.rmse, call = object$call, x.kern = x.kern,
+              est.method = object$est.method, est.conv = object$est.conv,
+              niter = niter, maxit = maxit, time = object$time,
+              test.rmse = test.rmse)
+  class(res) <- "ipriorMod_summary"
+  res
+}
+
+kernels_for_summary <- function(object, theta) {
+  # Helper function to obtain the character vector of RKHSs used (for summary).
+  #
+  # Args: An ipriorMod object and optional theta.
+  #
+  # Returns: Character vector of kernels for print/cat.
+  if (missing(theta)) theta <- object$theta
+  param.tab <- theta_to_param(theta, object$ipriorKernel)
   kernels.used <- rep(NA, nrow(param.tab))
   for (i in seq_along(param.tab$kernels)) {
     kernels.used[i] <- kernel_summary_translator(param.tab$kernels[i])
@@ -65,42 +95,44 @@ summary.ipriorMod <- function(object, ...) {
     x.kern[i] <- paste0(unique.kernels[i], " (", xs, ")\n")
   }
   x.kern <- paste0(x.kern, collapse = "")
-
-  if (object$method == "mixed") {
-    maxit <- object$control$maxit + object$control$em.maxit
-    niter <- object$niter + object$control$em.maxit
-  } else {
-    maxit <- object$control$maxit
-    niter <- object$niter
-  }
-
-  res <- list(resid.summ = resid.summ, tab = tab, loglik = logLik(object),
-              error = object$train.error, call = object$call, x.kern = x.kern,
-              est.method = object$est.method, est.conv = object$est.conv,
-              niter = niter, maxit = maxit, time = object$time)
-  class(res) <- "ipriorMod_summary"
-  res
+  x.kern
 }
 
+#' @export
+.kernels_for_summary <- kernels_for_summary
+
 kernel_summary_translator <- function(x) {
-  # Notes: Not vectorised.
+  # Helper function to translate information from ipriorKernel to a string of
+  # kernels used for summary print. Not vectorised.
+  #
+  # Args: kernel information in the form of c("linear", "fbm,0.5"), etc.
+  #
+  # Returns: Proper information of kernels used, e.g. "linear" -> "Linear",
+  # "fbm,0.5" -> "Fractional Brownian motion with Hurst 0.5", etc.
   if (is.kern_linear(x)) res <- "Linear"
   if (is.kern_pearson(x)) res <- "Pearson"
   else {
-    hyperparam <-  signif(get_hyperparam(x), 3)
+    # hyperparam <- signif(get_hyperparam(x), 3)
     if (is.kern_fbm(x)) {
-      res <- paste0("Fractional Brownian motion with Hurst ", hyperparam)
+      # res <- paste0("Fractional Brownian motion with Hurst ", hyperparam)
+      res <- "Fractional Brownian motion"
     }
     if (is.kern_se(x)) {
-      res <- paste0("Squared exponential with lengthscale ", hyperparam)
+      # res <- paste0("Squared exponential with lengthscale ", hyperparam)
+      res <- "Squared exponential"
     }
     if (is.kern_poly(x)) {
       degree <- get_polydegree(x)
-      res <- paste0("Polynomial degree ", degree, " with offset ", hyperparam)
+      # res <- paste0("Polynomial degree ", degree, " with offset ", hyperparam)
+      res <- paste0("Polynomial degree ", degree)
     }
   }
   res
 }
+
+#' @export
+.kernel_summary_translator <- kernel_summary_translator
+
 
 #' @export
 print.ipriorMod_summary <- function(x, wrap = FALSE, ...) {
@@ -132,8 +164,11 @@ print.ipriorMod_summary <- function(x, wrap = FALSE, ...) {
   print(x$time)
   cat("\n")
   cat("Log-likelihood value:", x$loglik, "\n")
-  cat("Training mean squared error:", x$error, "\n")
-  # cat("Standard deviation of errors: xxx with S.E.: xxx\n")
+  cat("RMSE of prediction:", x$train.rmse, "(Training)")
+  if (!is.null(x$test.rmse))
+    cat(",", x$test.rmse, "(Test)")
+  # cat("Standard deviation of errors: xxx with S.E.: xxx")
+  cat("\n")
 }
 
 if (getRversion() < "3.3.0") {

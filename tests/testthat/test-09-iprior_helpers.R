@@ -9,8 +9,7 @@ test_that("Hlam", {
   mod <- kernL(y, x1, x2, x3, kernels = c("fbm", "se", "pearson"))
   K <- get_Hlam(mod, mod$thetal$theta)
   tmp <- eigen_Hlam(K)
-  expect_equal(det(K), 32.73602, tolerance = 1e-6)
-  expect_equal(tmp$u, c(1.869905, 3.598763, 4.864665), tolerance = 1e-6)
+  expect_equal(tmp$u, c(4.066071e-16, 3.569738e+00, 4.864665e+00), tolerance = 1e-6)
 
 })
 
@@ -51,5 +50,19 @@ test_that("EM loop logical",{
 
 	loglik[2] <- loglik[1] - stop.crit
 	expect_warning(em_loop_logical())  # decrease in log-likelihood creates warning
+
+})
+
+test_that("Polynomial scale parameters multiply correctly", {
+
+  x <- y <- rnorm(3)
+  lambda <- abs(rnorm(1))
+  res1 <- kern_poly(x, d = 3, lam.poly = lambda)
+
+  mod <- kernL(y, x, kernel = "poly3", lambda = lambda)
+  res2 <- get_Hlam(mod, c(log(lambda), log(1)))
+  res3 <- get_Htildelam(mod, c(log(lambda), log(1)), list(x))
+  expect_equal(res1, res2)
+  expect_equal(res2, res3)
 
 })

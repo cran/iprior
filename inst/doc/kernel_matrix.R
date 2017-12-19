@@ -59,11 +59,11 @@ findH2 <- function(z, ind1, ind2){
 
 
 ## ------------------------------------------------------------------------
-(mod <- .kernL(stack.loss ~ . ^ 2, data = stackloss))
+(mod <- kernL(stack.loss ~ . ^ 2, data = stackloss))
 p <- 3
 
 ## ------------------------------------------------------------------------
-intr <- mod$model$intr
+intr <- mod$intr
 colnames(intr) <- NULL
 intr
 

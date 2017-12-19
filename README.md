@@ -11,12 +11,12 @@ In a general regression setting, priors can be assigned to the regression functi
 An I-prior is defined as Gaussian with some prior mean (usually zero) and covariance kernel equal to the Fisher information for the regression function.
 
 This package performs regression modelling using I-priors in R. 
-It is intuitively designed to be similar to `lm`, making use of similar syntactical conventions and S3 methods, with both formula and non-formula based input. 
+It is intuitively designed to be similar to `lm`, making use of familiar syntactical conventions and S3 methods, with both formula and non-formula based input. 
 The package estimates these parameters using direct log-likelihood maximisation, the expectation-maxmisation (EM) algorithm, or a combination of both.
 While the main interest of I-prior modelling is prediction, inference is also possible, e.g. via log-likelihood ratio tests.
 
 For installation instructions and some examples of I-prior modelling, continue reading below. 
-The package is documented with help files, and the vignette provides an introduction to the concept of I-priors and also to using the package.
+The package is documented with help files, and the [vignette](http://phd.haziqj.ml/iprior_paper.pdf) provides an introduction to the concept of I-priors and also to using the package.
 
 ## Installation
 
@@ -46,8 +46,7 @@ Then, run the following code to install and attach the `iprior` package.
 devtools::install_github("haziqj/iprior", build_vignettes = TRUE)
 library(iprior)
 ```
-
-[comment]: *Note: The option `build_vignettes = TRUE` builds the package vignettes for viewing, but takes slightly longer. Set `build_vignettes = FALSE`, or remove this option entirely, to skip building the vignettes.*
+[//]: # (*Note: The option `build_vignettes = TRUE` builds the package vignettes for viewing, but takes slightly longer. Set `build_vignettes = FALSE`, or remove this option entirely, to skip building the vignettes.*)
 
 ## Syntax
 
@@ -64,5 +63,5 @@ Find the full list of options by typing `?iprior` in R.
 
 ## Resources
 
-View the package vignette by typing `browseVignettes("iprior")` in R. 
+View the package vignette by typing `browseVignettes("iprior")` in R or visiting this [link](http://phd.haziqj.ml/iprior_paper.pdf). 
 This package is part of the PhD project entitled "Regression Modelling using Fisher Information Covariance Kernels (I-priors)" by Haziq Jamil [[link](http://phd.haziqj.ml)].

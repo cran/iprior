@@ -36,11 +36,8 @@ iprior_parallel <- function(mod, method = "direct",
   # information.
 
   # Set up controls ------------------------------------------------------------
-  if (control$restarts == 1) {
-    control$restarts <- parallel::detectCores()
-  } else {
-    control$no.cores <- min(parallel::detectCores(), control$restarts)
-  }
+  if (control$restarts == 1) control$restarts <- parallel::detectCores()
+  control$no.cores <- min(parallel::detectCores(), control$restarts)
   if (!is.null(control$theta0)) {
     message("Ignoring theta0 control options with random restarts.")
   }
@@ -62,7 +59,8 @@ iprior_parallel <- function(mod, method = "direct",
     foreach::foreach(
       i = seq_len(control$restarts),
       .packages = "iprior",
-      .options.snow = snow.options.list
+      .options.snow = snow.options.list,
+      .errorhandling = "remove"
     ), {
       new.control          <- control
       new.control$restarts <- 0
