@@ -1,7 +1,7 @@
 ################################################################################
 #
 #   iprior: Linear Regression using I-priors
-#   Copyright (C) 2017  Haziq Jamil
+#   Copyright (C) 2018  Haziq Jamil
 #
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@ iprior_direct <- function(mod, lik.fn, theta0, control = list(),
 
   # Default optim control list -------------------------------------------------
   control_ <- list(
-    fnscale = -2,
+    fnscale = -2,  # minimising log-likelihood on deviance scale
     trace   = 1,
     maxit   = 100,
     REPORT  = 10,

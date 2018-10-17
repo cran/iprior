@@ -1,7 +1,7 @@
 ################################################################################
 #
 #   iprior: Linear Regression using I-priors
-#   Copyright (C) 2017  Haziq Jamil
+#   Copyright (C) 2018  Haziq Jamil
 #
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -118,8 +118,8 @@ iprior <- function(...) UseMethod("iprior")
 #' mod4 <- iprior(y ~ X, dat, method = "mixed")
 #' mod5 <- iprior(y ~ X, dat, method = "fixed", lambda = coef(mod1)[1],
 #'                psi = coef(mod1)[2])
-#' all.equal(logLik(mod1), logLik(mod2), logLik(mod3), logLik(mod4),
-#'           logLik(mod5), tol = 1e-6)
+#' c(logLik(mod1), logLik(mod2), logLik(mod3), logLik(mod4),
+#'   logLik(mod5))
 #'
 #' \dontrun{
 #'

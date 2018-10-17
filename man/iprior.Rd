@@ -12,17 +12,18 @@
   control = list(), interactions = NULL, est.lambda = TRUE,
   est.hurst = FALSE, est.lengthscale = FALSE, est.offset = FALSE,
   est.psi = TRUE, fixed.hyp = NULL, lambda = 1, psi = 1,
-  nystrom = FALSE, nys.seed = NULL, model = list(), train.samp, test.samp)
+  nystrom = FALSE, nys.seed = NULL, model = list(), train.samp,
+  test.samp)
 
-\method{iprior}{formula}(formula, data, kernel = "linear", one.lam = FALSE,
-  method = "direct", control = list(), est.lambda = TRUE,
-  est.hurst = FALSE, est.lengthscale = FALSE, est.offset = FALSE,
-  est.psi = TRUE, fixed.hyp = NULL, lambda = 1, psi = 1,
-  nystrom = FALSE, nys.seed = NULL, model = list(), train.samp, test.samp,
-  ...)
+\method{iprior}{formula}(formula, data, kernel = "linear",
+  one.lam = FALSE, method = "direct", control = list(),
+  est.lambda = TRUE, est.hurst = FALSE, est.lengthscale = FALSE,
+  est.offset = FALSE, est.psi = TRUE, fixed.hyp = NULL, lambda = 1,
+  psi = 1, nystrom = FALSE, nys.seed = NULL, model = list(),
+  train.samp, test.samp, ...)
 
-\method{iprior}{ipriorKernel}(object, method = "direct", control = list(),
-  ...)
+\method{iprior}{ipriorKernel}(object, method = "direct",
+  control = list(), ...)
 
 \method{iprior}{ipriorMod}(object, method = NULL, control = list(),
   iter.update = 100, ...)
@@ -199,8 +200,8 @@ mod3 <- iprior(y ~ X, dat, method = "canonical")
 mod4 <- iprior(y ~ X, dat, method = "mixed")
 mod5 <- iprior(y ~ X, dat, method = "fixed", lambda = coef(mod1)[1],
                psi = coef(mod1)[2])
-all.equal(logLik(mod1), logLik(mod2), logLik(mod3), logLik(mod4),
-          logLik(mod5), tol = 1e-6)
+c(logLik(mod1), logLik(mod2), logLik(mod3), logLik(mod4),
+  logLik(mod5))
 
 \dontrun{
 

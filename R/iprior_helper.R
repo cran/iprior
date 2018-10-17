@@ -1,7 +1,7 @@
 ################################################################################
 #
 #   iprior: Linear Regression using I-priors
-#   Copyright (C) 2017  Haziq Jamil
+#   Copyright (C) 2018  Haziq Jamil
 #
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -99,7 +99,7 @@ convert_se <- function(se, theta, object) {
   # Args: se for theta, the optimised theta value, and the ipriorKernel object.
   #
   # Returns: A vector similar to se, but with delta-transformed values.
-  theta.names <- names(object$theta)
+  theta.names <- names(object$thetal$theta)
   res <- se
 
   types <- c("lambda", "hurst", "offset", "lengthscale", "psi")
@@ -116,6 +116,9 @@ convert_se <- function(se, theta, object) {
 
   res
 }
+
+#' @export
+.convert_se <- convert_se
 
 get_Hlam <- function(object, theta, theta.is.lambda = FALSE) {
   # Obtain the scaled kernel matrix Hlam.

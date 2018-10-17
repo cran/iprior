@@ -48,7 +48,7 @@ get_se(object)
 
 get_kernels(object)
 
-get_kern_matrix(object, theta = NULL, xstar = list(NULL))
+get_kern_matrix(object, theta = NULL, newdata)
 
 get_prederror(object, error.type = c("RMSE", "MSE"))
 
@@ -74,7 +74,7 @@ get_theta(object)
 \item{theta}{(Optional) Value of hyperparameters to evaluate the kernel
 matrix.}
 
-\item{xstar}{(Optional) If not supplied, then a square, symmetric kernel
+\item{newdata}{(Optional) If not supplied, then a square, symmetric kernel
 matrix is returned using the data as input points. Otherwise, the kernel
 matrix is evaluated with respect to this set of data as well. It must be a
 list of vectors/matrices with similar dimensions to the original data.}

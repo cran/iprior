@@ -1,7 +1,7 @@
 ################################################################################
 #
 #   iprior: Linear Regression using I-priors
-#   Copyright (C) 2017  Haziq Jamil
+#   Copyright (C) 2018  Haziq Jamil
 #
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@
 #' @param standard Standard for object size.
 #' @param theta (Optional) Value of hyperparameters to evaluate the kernel
 #'   matrix.
-#' @param xstar (Optional) If not supplied, then a square, symmetric kernel
+#' @param newdata (Optional) If not supplied, then a square, symmetric kernel
 #'   matrix is returned using the data as input points. Otherwise, the kernel
 #'   matrix is evaluated with respect to this set of data as well. It must be a
 #'   list of vectors/matrices with similar dimensions to the original data.
@@ -148,20 +148,31 @@ get_kernels <- function(object) {
 
 #' @describeIn Accessors Obtain the kernel matrix of the I-prior model.
 #' @export
-get_kern_matrix <- function(object, theta = NULL, xstar = list(NULL)) {
+get_kern_matrix <- function(object, theta = NULL, newdata) {
   if (is.ipriorMod(object)) {
     # estl <- object$ipriorKernel$estl
     # til.cond <- (
     #   !isTRUE(estl$est.hurst) & !isTRUE(estl$est.lengt) & !isTRUE(estl$est.offs)
     # )
-    res <- get_Hlam(object$ipriorKernel, object$theta, FALSE)
+    if (missing(newdata)) {
+      res <- get_Hlam(object$ipriorKernel, object$theta, FALSE)
+    } else {
+      list2env(before_predict(object, newdata), envir = environment())  # writes xstar to env
+      res <- get_Htildelam(object$ipriorKernel, object$theta, xstar)
+    }
     return(res)
   } else if (is.ipriorKernel(object)) {
     # estl <- object$estl
     # til.cond <- (
     #   !isTRUE(estl$est.hurst) & !isTRUE(estl$est.lengt) & !isTRUE(estl$est.offs)
     # )
-    res <- get_Hlam(object, object$thetal$theta, FALSE)
+    if (missing(newdata)) {
+      res <- get_Hlam(object, object$thetal$theta, FALSE)
+    } else {
+      list2env(before_predict(list(ipriorKernel = object), newdata),
+               envir = environment())  # writes xstar to env
+      res <- get_Htildelam(object, object$thetal$theta, xstar)
+    }
     return(res)
   }
 }
