@@ -74,6 +74,7 @@ iprior <- function(...) UseMethod("iprior")
 #'   value between 0 and 1.}}
 #' @param iter.update The number of iterations to perform when calling the
 #'   function on an \code{ipriorMod} object. Defaults to \code{100}.
+#' @param intercept Optional intercept term.
 #'
 #' @return An \code{ipriorMod} object. Several accessor functions have been
 #'   written to obtain pertinent things from the \code{ipriorMod} object. The
@@ -137,17 +138,18 @@ iprior.default <- function(y, ..., kernel = "linear", method = "direct",
                            est.lengthscale = FALSE, est.offset = FALSE,
                            est.psi = TRUE, fixed.hyp = NULL, lambda = 1,
                            psi = 1, nystrom = FALSE, nys.seed = NULL,
-                           model = list(), train.samp, test.samp) {
+                           model = list(), train.samp, test.samp, intercept) {
   # Load the I-prior model -----------------------------------------------------
   if (is.ipriorKernel(y)) {
     mod <- y
   } else {
     mod <- kernL(y = y, ..., kernel = kernel, interactions = interactions,
-                  est.lambda = est.lambda, est.hurst = est.hurst,
-                  est.lengthscale = est.lengthscale, est.offset = est.offset,
-                  est.psi = est.psi, fixed.hyp = fixed.hyp, lambda = lambda,
-                  psi = psi, nystrom = nystrom, nys.seed = nys.seed,
-                  model = model, train.samp = train.samp, test.samp = test.samp)
+                 est.lambda = est.lambda, est.hurst = est.hurst,
+                 est.lengthscale = est.lengthscale, est.offset = est.offset,
+                 est.psi = est.psi, fixed.hyp = fixed.hyp, lambda = lambda,
+                 psi = psi, nystrom = nystrom, nys.seed = nys.seed,
+                 model = model, train.samp = train.samp, test.samp = test.samp,
+                 intercept = intercept)
   }
   if (is.categorical(mod)) {
     warning("Categorical responses loaded. Consider using iprobit package.",
@@ -278,7 +280,8 @@ iprior.formula <- function(formula, data, kernel = "linear", one.lam = FALSE,
                            est.lengthscale = FALSE, est.offset = FALSE,
                            est.psi = TRUE, fixed.hyp = NULL, lambda = 1,
                            psi = 1, nystrom = FALSE, nys.seed = NULL,
-                           model = list(), train.samp, test.samp, ...) {
+                           model = list(), train.samp, test.samp, intercept,
+                           ...) {
   # Simply load the kernel and pass to iprior.default() ------------------------
   mod <- kernL.formula(formula, data, kernel = kernel, one.lam = one.lam,
                        est.lambda = est.lambda, est.hurst = est.hurst,
@@ -286,7 +289,8 @@ iprior.formula <- function(formula, data, kernel = "linear", one.lam = FALSE,
                        est.offset = est.offset, est.psi = est.psi,
                        fixed.hyp = fixed.hyp, lambda = lambda, psi = psi,
                        nystrom = nystrom, nys.seed = nys.seed, model = model,
-                       train.samp = train.samp, test.samp = test.samp, ...)
+                       train.samp = train.samp, test.samp = test.samp,
+                       intercept = intercept, ...)
   res <- iprior.default(y = mod, method = method, control = control)
   res$call <- fix_call_formula(match.call(), "iprior")
   res$ipriorKernel$call <- fix_call_formula(match.call(), "kernL")

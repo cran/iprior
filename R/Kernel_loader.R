@@ -74,6 +74,7 @@
 #'   should be used for training, and the remaining used for testing.
 #' @param test.samp (Optional) Similar to \code{train.samp}, but on test samples
 #'   instead.
+#' @param intercept (Optional) Intercept for response variables.
 #'
 #' @return An \code{ipriorKernel} object which contains the relevant material to
 #'   be passed to the \code{iprior} function for model fitting.
@@ -104,16 +105,17 @@ kernL <- function(
   y, ..., kernel = "linear", interactions = NULL, est.lambda = TRUE,
   est.hurst = FALSE, est.lengthscale = FALSE, est.offset = FALSE,
   est.psi = TRUE, fixed.hyp = NULL, lambda = 1, psi = 1, nystrom = FALSE,
-  nys.seed = NULL, model = list(), train.samp, test.samp
+  nys.seed = NULL, model = list(), train.samp, test.samp, intercept
 ) UseMethod("kernL")
 
 #' @export
 kernL.default <- function(y, ..., kernel = "linear", interactions = NULL,
-                           est.lambda = TRUE, est.hurst = FALSE,
-                           est.lengthscale = FALSE, est.offset = FALSE,
-                           est.psi = TRUE, fixed.hyp = NULL, lambda = 1,
-                           psi = 1, nystrom = FALSE, nys.seed = NULL,
-                           model = list(), train.samp, test.samp) {
+                          est.lambda = TRUE, est.hurst = FALSE,
+                          est.lengthscale = FALSE, est.offset = FALSE,
+                          est.psi = TRUE, fixed.hyp = NULL, lambda = 1,
+                          psi = 1, nystrom = FALSE, nys.seed = NULL,
+                          model = list(), train.samp, test.samp,
+                          intercept) {
   # Checks ---------------------------------------------------------------------
   if (is.list(model) & length(model) > 0) {
     stop("\'model\' option is deprecated. Use the arguments directly instead. See \'?kernL\' for details.", call. = FALSE)
@@ -175,8 +177,12 @@ kernL.default <- function(y, ..., kernel = "linear", interactions = NULL,
   }
 
   # Get intercept --------------------------------------------------------------
-  y <- scale(y, scale = FALSE)  # centre variables
-  intercept <- attr(y, "scaled:center")
+  if (missing(intercept)) {
+    y <- scale(y, scale = FALSE)  # centre variables
+    intercept <- attr(y, "scaled:center")
+  } else {
+    y <- scale(y, scale = FALSE, center = intercept)
+  }
 
   # Meta -----------------------------------------------------------------------
   n <- length(y)
@@ -190,22 +196,30 @@ kernL.default <- function(y, ..., kernel = "linear", interactions = NULL,
   if (is.null(yname)) yname <- "y"
 
   # For Nystrom method: Reorder data and create Xl.Nys -------------------------
-  if (as.numeric(nystrom) > 0 & as.numeric(nystrom) != n) {
+if (as.numeric(nystrom[1]) > 0 & as.numeric(nystrom[1]) != n) {
+  if (length(nystrom) > 1) {
+    # This is the samples to use
+    nys.samp <- c(nystrom, seq_along(y)[-nystrom])
+    nystrom <- length(nystrom)
+  } else {
     if (as.numeric(nystrom) == 1) nystrom <- floor(0.1 * n)
     if (!is.null(nys.seed)) set.seed(nys.seed)
     nys.samp <- sample(seq_along(y))
-    y.tmp <- y[nys.samp]
-    mostattributes(y.tmp) <- attributes(y)
-    y <- y.tmp
-    tmp <- lapply(Xl, reorder_x, smp = nys.samp)
-    mostattributes(tmp) <- attributes(Xl)
-    Xl <- tmp
-    Xl.nys <- lapply(Xl, reorder_x, smp = seq_len(nystrom))
-    mostattributes(Xl.nys) <- attributes(Xl)
-    nys.check <- TRUE
-  } else {
-    nys.check <- FALSE
   }
+
+  y.tmp <- y[nys.samp]
+  mostattributes(y.tmp) <- attributes(y)
+  y <- y.tmp
+  tmp <- lapply(Xl, reorder_x, smp = nys.samp)
+  mostattributes(tmp) <- attributes(Xl)
+  Xl <- tmp
+  Xl.nys <- lapply(Xl, reorder_x, smp = seq_len(nystrom))
+  mostattributes(Xl.nys) <- attributes(Xl)
+  nys.check <- TRUE
+} else {
+  nys.check <- FALSE
+}
+
 
   # What types of kernels? -----------------------------------------------------
   if (length(kernel) < p && length(kernel) > 1) {
@@ -323,11 +337,12 @@ kernL.default <- function(y, ..., kernel = "linear", interactions = NULL,
 #' @rdname kernL
 #' @export
 kernL.formula <- function(formula, data, kernel = "linear", one.lam = FALSE,
-                           est.lambda = TRUE, est.hurst = FALSE,
-                           est.lengthscale = FALSE, est.offset = FALSE,
-                           est.psi = TRUE, fixed.hyp = NULL, lambda = 1,
-                           psi = 1, nystrom = FALSE, nys.seed = NULL,
-                           model = list(), train.samp, test.samp, ...) {
+                          est.lambda = TRUE, est.hurst = FALSE,
+                          est.lengthscale = FALSE, est.offset = FALSE,
+                          est.psi = TRUE, fixed.hyp = NULL, lambda = 1,
+                          psi = 1, nystrom = FALSE, nys.seed = NULL,
+                          model = list(), train.samp, test.samp, intercept,
+                          ...) {
   list2env(formula_to_xy(formula = formula, data = data, one.lam = one.lam),
            envir = environment())
   res <- kernL.default(y = y, Xl.formula = Xl, interactions = interactions,
@@ -337,7 +352,8 @@ kernL.formula <- function(formula, data, kernel = "linear", one.lam = FALSE,
                        est.offset = est.offset, est.psi = est.psi,
                        fixed.hyp = fixed.hyp, lambda = lambda, psi = psi,
                        nystrom = nystrom, nys.seed = nys.seed, model = model,
-                       train.samp = train.samp, test.samp = test.samp, ...)
+                       train.samp = train.samp, test.samp = test.samp,
+                       intercept = intercept, ...)
   res$yname <- yname
   res$formula <- formula
   res$terms <- tt

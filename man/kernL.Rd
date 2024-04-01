@@ -5,17 +5,48 @@
 \alias{kernL.formula}
 \title{Load the kernel matrices for I-prior models}
 \usage{
-kernL(y, ..., kernel = "linear", interactions = NULL,
-  est.lambda = TRUE, est.hurst = FALSE, est.lengthscale = FALSE,
-  est.offset = FALSE, est.psi = TRUE, fixed.hyp = NULL, lambda = 1,
-  psi = 1, nystrom = FALSE, nys.seed = NULL, model = list(),
-  train.samp, test.samp)
+kernL(
+  y,
+  ...,
+  kernel = "linear",
+  interactions = NULL,
+  est.lambda = TRUE,
+  est.hurst = FALSE,
+  est.lengthscale = FALSE,
+  est.offset = FALSE,
+  est.psi = TRUE,
+  fixed.hyp = NULL,
+  lambda = 1,
+  psi = 1,
+  nystrom = FALSE,
+  nys.seed = NULL,
+  model = list(),
+  train.samp,
+  test.samp,
+  intercept
+)
 
-\method{kernL}{formula}(formula, data, kernel = "linear",
-  one.lam = FALSE, est.lambda = TRUE, est.hurst = FALSE,
-  est.lengthscale = FALSE, est.offset = FALSE, est.psi = TRUE,
-  fixed.hyp = NULL, lambda = 1, psi = 1, nystrom = FALSE,
-  nys.seed = NULL, model = list(), train.samp, test.samp, ...)
+\method{kernL}{formula}(
+  formula,
+  data,
+  kernel = "linear",
+  one.lam = FALSE,
+  est.lambda = TRUE,
+  est.hurst = FALSE,
+  est.lengthscale = FALSE,
+  est.offset = FALSE,
+  est.psi = TRUE,
+  fixed.hyp = NULL,
+  lambda = 1,
+  psi = 1,
+  nystrom = FALSE,
+  nys.seed = NULL,
+  model = list(),
+  train.samp,
+  test.samp,
+  intercept,
+  ...
+)
 }
 \arguments{
 \item{y}{Vector of response variables}
@@ -83,6 +114,8 @@ should be used for training, and the remaining used for testing.}
 
 \item{test.samp}{(Optional) Similar to \code{train.samp}, but on test samples
 instead.}
+
+\item{intercept}{(Optional) Intercept for response variables.}
 
 \item{formula}{The formula to fit when using formula interface.}
 

@@ -62,7 +62,7 @@
 #' kern_linear(1:3)
 #' kern_fbm(1:5, 1:3, gamma = 0.7)
 #'
-#' @references \url{http://phd.haziqj.ml/intro/}
+#' @references \url{https://phd.haziqj.ml/intro/}
 #'
 #' @name kernel
 #' @aliases kernels
@@ -183,7 +183,7 @@ kern_fbm <- function(x, y = NULL, gamma = 0.5, centre = TRUE) {
 
 #' @rdname kernel
 #' @export
-kern_se <- function(x, y = NULL, l = 1, centre = TRUE) {
+kern_se <- function(x, y = NULL, l = 1, centre = FALSE) {
   list2env(kern_check_xy(x, y, centre), environment())
   xcrossprod <- tcrossprod(x)
 

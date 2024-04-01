@@ -8,25 +8,56 @@
 \alias{iprior.ipriorMod}
 \title{Fit an I-prior regression model}
 \usage{
-\method{iprior}{default}(y, ..., kernel = "linear", method = "direct",
-  control = list(), interactions = NULL, est.lambda = TRUE,
-  est.hurst = FALSE, est.lengthscale = FALSE, est.offset = FALSE,
-  est.psi = TRUE, fixed.hyp = NULL, lambda = 1, psi = 1,
-  nystrom = FALSE, nys.seed = NULL, model = list(), train.samp,
-  test.samp)
+\method{iprior}{default}(
+  y,
+  ...,
+  kernel = "linear",
+  method = "direct",
+  control = list(),
+  interactions = NULL,
+  est.lambda = TRUE,
+  est.hurst = FALSE,
+  est.lengthscale = FALSE,
+  est.offset = FALSE,
+  est.psi = TRUE,
+  fixed.hyp = NULL,
+  lambda = 1,
+  psi = 1,
+  nystrom = FALSE,
+  nys.seed = NULL,
+  model = list(),
+  train.samp,
+  test.samp,
+  intercept
+)
 
-\method{iprior}{formula}(formula, data, kernel = "linear",
-  one.lam = FALSE, method = "direct", control = list(),
-  est.lambda = TRUE, est.hurst = FALSE, est.lengthscale = FALSE,
-  est.offset = FALSE, est.psi = TRUE, fixed.hyp = NULL, lambda = 1,
-  psi = 1, nystrom = FALSE, nys.seed = NULL, model = list(),
-  train.samp, test.samp, ...)
+\method{iprior}{formula}(
+  formula,
+  data,
+  kernel = "linear",
+  one.lam = FALSE,
+  method = "direct",
+  control = list(),
+  est.lambda = TRUE,
+  est.hurst = FALSE,
+  est.lengthscale = FALSE,
+  est.offset = FALSE,
+  est.psi = TRUE,
+  fixed.hyp = NULL,
+  lambda = 1,
+  psi = 1,
+  nystrom = FALSE,
+  nys.seed = NULL,
+  model = list(),
+  train.samp,
+  test.samp,
+  intercept,
+  ...
+)
 
-\method{iprior}{ipriorKernel}(object, method = "direct",
-  control = list(), ...)
+\method{iprior}{ipriorKernel}(object, method = "direct", control = list(), ...)
 
-\method{iprior}{ipriorMod}(object, method = NULL, control = list(),
-  iter.update = 100, ...)
+\method{iprior}{ipriorMod}(object, method = NULL, control = list(), iter.update = 100, ...)
 }
 \arguments{
 \item{y}{Vector of response variables}
@@ -122,6 +153,8 @@ should be used for training, and the remaining used for testing.}
 \item{test.samp}{(Optional) Similar to \code{train.samp}, but on test samples
 instead.}
 
+\item{intercept}{Optional intercept term.}
+
 \item{formula}{The formula to fit when using formula interface.}
 
 \item{data}{Data frame containing variables when using formula interface.}
@@ -159,13 +192,13 @@ to perform the estimation.
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{ipriorKernel}: Takes in object of type \code{ipriorKernel}, a loaded and
+\item \code{iprior(ipriorKernel)}: Takes in object of type \code{ipriorKernel}, a loaded and
 prepared I-prior model, and proceeds to estimate it.
 
-\item \code{ipriorMod}: Re-run or continue running the EM algorithm from last
+\item \code{iprior(ipriorMod)}: Re-run or continue running the EM algorithm from last
 attained parameter values in object \code{ipriorMod}.
-}}
 
+}}
 \examples{
 
 # Formula based input

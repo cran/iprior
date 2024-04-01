@@ -1,10 +1,15 @@
 # R/iprior: An R package for I-prior regression
 
-[![Build Status](https://travis-ci.org/haziqj/iprior.svg?branch=master)](https://travis-ci.org/haziqj/iprior)
-[![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/haziqj/iprior?branch=master&svg=true)](https://ci.appveyor.com/project/haziqj/iprior)
-[![Coverage Status](https://img.shields.io/codecov/c/github/haziqj/iprior/master.svg)](https://codecov.io/gh/haziqj/iprior)
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/haziqj/iprior/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/haziqj/iprior/actions/workflows/R-CMD-check.yaml)
+[![codecov](https://codecov.io/gh/haziqj/iprior/graph/badge.svg?token=W4xTtuyt6r)](https://app.codecov.io/gh/haziqj/iprior)
 [![CRAN_Status_Badge_version_ago](http://www.r-pkg.org/badges/version-ago/iprior)](https://cran.r-project.org/package=iprior)
 [![CRAN downloads](http://cranlogs.r-pkg.org/badges/grand-total/iprior)](https://cran.r-project.org/package=iprior)
+<!-- badges: end -->
+
+<!-- [![Build Status](https://travis-ci.org/haziqj/iprior.svg?branch=master)](https://travis-ci.org/haziqj/iprior)
+[![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/haziqj/iprior?branch=master&svg=true)](https://ci.appveyor.com/project/haziqj/iprior)
+[![Coverage Status](https://img.shields.io/codecov/c/github/haziqj/iprior/master.svg)](https://codecov.io/gh/haziqj/iprior) -->
 
 Based on the manuscript entitled "Regression and Classification with I-priors" by Wicher Bergsma (2018, [arXiv:1707.00274](https://arxiv.org/abs/1707.00274)). 
 In a general regression setting, priors can be assigned to the regression function in a vector space framework, and the posterior estimate of the regression function obtained. 
@@ -16,7 +21,7 @@ The package estimates these parameters using direct log-likelihood maximisation,
 While the main interest of I-prior modelling is prediction, inference is also possible, e.g. via log-likelihood ratio tests.
 
 For installation instructions and some examples of I-prior modelling, continue reading below. 
-The package is documented with help files, and the [vignette](http://phd.haziqj.ml/iprior_paper.pdf) provides an introduction to the concept of I-priors and also to using the package.
+The package is documented with help files, and the [vignette](https://phd.haziqj.ml/iprior_paper.pdf) provides an introduction to the concept of I-priors and also to using the package.
 
 ## Installation
 
@@ -33,7 +38,7 @@ or the developmental version from this GitHub repository. R/iprior makes use of 
 -   On Mac, install Xcode from the app store.
 -   On Linux, `sudo apt-get install r-base-dev` or similar.
 
-The easiest way to then install from this repo is by using the [devtools](https://github.com/hadley/devtools) package. 
+The easiest way to then install from this repo is by using the [devtools](https://github.com/r-lib/devtools) package. 
 Install this first.
 
 ``` r
@@ -63,5 +68,5 @@ Find the full list of options by typing `?iprior` in R.
 
 ## Resources
 
-View the package vignette by typing `browseVignettes("iprior")` in R or visiting this [link](http://phd.haziqj.ml/iprior_paper.pdf). 
-This package is part of the PhD project entitled "Regression Modelling using priors depending on Fisher information covariance kernels (I-priors)" by Haziq Jamil [[link](http://phd.haziqj.ml)].
+View the package vignette by typing `browseVignettes("iprior")` in R or visiting this [link](https://phd.haziqj.ml/iprior_paper.pdf). 
+This package is part of the PhD project entitled "Regression Modelling using priors depending on Fisher information covariance kernels (I-priors)" by Haziq Jamil [[link](https://phd.haziqj.ml)].

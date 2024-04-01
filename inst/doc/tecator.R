@@ -1,24 +1,24 @@
-## ---- include = FALSE----------------------------------------------------
+## ----include = FALSE----------------------------------------------------------
 library(iprior)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 data(tecator, package = "caret")
 fat <- endpoints[, 2]
 absorp <- -t(diff(t(absorp)))  # take first differences
 mod1 <- iprior(fat, absorp, train.samp = 1:172, method = "mixed")
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 get_prederror(mod1)
 
-## ---- eval = FALSE-------------------------------------------------------
+## ----eval = FALSE-------------------------------------------------------------
 #  (mod1.cv <- iprior_cv(fat, absorp, method = "em",
 #                        control = list(stop.crit = 1e-2), folds = Inf))
 
-## ---- echo = FALSE-------------------------------------------------------
+## ----echo = FALSE-------------------------------------------------------------
 data(tecator.cv, package = "iprior")
 print(tecator.cv[[1]], "RMSE")
 
-## ---- eval = FALSE-------------------------------------------------------
+## ----eval = FALSE-------------------------------------------------------------
 #  mod2.cv <- iprior_cv(fat, absorp, method = "em", folds = Inf, kernel = "poly2",
 #                       est.offset = TRUE, control = list(stop.crit = 1e-2))
 #  mod3.cv <- iprior_cv(fat, absorp, method = "em", folds = Inf, kernel = "poly3",
@@ -42,6 +42,6 @@ print(tecator.cv[[1]], "RMSE")
 #    tab
 #  }
 
-## ---- echo = FALSE-------------------------------------------------------
+## ----echo = FALSE-------------------------------------------------------------
 knitr::kable(iprior::dec_plac(tecator.cv[[7]], 2), align = "r", caption = "Results for the LOOCV experiment for various I-prior models.")
 

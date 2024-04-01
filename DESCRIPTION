@@ -1,6 +1,6 @@
 Package: iprior
 Title: Regression Modelling using I-Priors
-Version: 0.7.3
+Version: 0.7.4
 Authors@R: person("Haziq", "Jamil", email = "haziq.jamil@gmail.com",
                   role = c("aut", "cre"))
 Encoding: UTF-8
@@ -10,6 +10,7 @@ Description: Provides methods to perform and analyse I-prior regression models.
 URL: https://github.com/haziqj/iprior
 BugReports: https://github.com/haziqj/iprior/issues
 License: GPL (>= 3.0)
+Language: en-GB
 Depends: R (>= 3.2.5)
 Imports: doSNOW, foreach, ggplot2, mvtnorm, Rcpp (>= 0.12.5), reshape2,
         scales
@@ -17,10 +18,10 @@ LinkingTo: Rcpp, RcppEigen
 Suggests: caret, knitr, MASS, R.rsp, rmarkdown, testthat
 LazyData: yes
 VignetteBuilder: knitr, R.rsp
-RoxygenNote: 6.1.1
+RoxygenNote: 7.2.3
 NeedsCompilation: yes
-Packaged: 2019-03-20 07:07:44 UTC; haziqjamil
+Packaged: 2024-04-01 19:48:52 UTC; haziqj
 Author: Haziq Jamil [aut, cre]
 Maintainer: Haziq Jamil <haziq.jamil@gmail.com>
 Repository: CRAN
-Date/Publication: 2019-03-20 09:00:03 UTC
+Date/Publication: 2024-04-01 23:10:07 UTC
